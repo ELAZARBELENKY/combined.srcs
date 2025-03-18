@@ -195,7 +195,7 @@ module lw_hmac ( input clk_i,
           end
           hmac_start <= 1'b0;
           counter <= counter - 1;
-          if (done_hash) begin
+          if (done_hash && !abort_i) begin
             hash_o <= sha_output;
             done_o <= 1'b1;
           end
@@ -210,7 +210,7 @@ module lw_hmac ( input clk_i,
         `ifdef CORE_ARCH_S64
         if (opcode_i [2:1] == 2'b11) ps <= not_active;
         `endif
-      end else if (ps == sha_op && done_hash) begin
+      end else if (ps == sha_op && done_hash && !abort_i) begin
         done_o <= 1'b1;
         hash_o <= sha_output;
       end

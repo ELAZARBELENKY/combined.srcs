@@ -37,11 +37,10 @@ module lw_sha_main( input clk_i,
   logic finish = 1'b0;
   logic proccess_is_active;
   `ifdef CORE_ARCH_S64
-  logic [2:0] mode = 2'b00;
+  logic [2:0] mode = 3'b000;
   logic s64;
   `else `ifdef CORE_ARCH_S32
   logic mode = 1'b0;
-//  logic [1:0] chunk_end = 2'b0;
   `endif `endif
   typedef enum logic {not_active=1'b0, active=1'b1} status;
   status ns, ps = not_active;
@@ -158,7 +157,7 @@ module lw_sha_main( input clk_i,
             if (mode) hash_o[0] <= '0;
           end else begin
             round_index <= 'b0;
-            for (int i = 0; i < 8; i++) begin
+            foreach (initial_state[i]) begin
               initial_state[i] <= initial_state[i] + read_word(state[i]);
               state[i] <= {1'b0, initial_state[i] + read_word(state[i])};
             end
