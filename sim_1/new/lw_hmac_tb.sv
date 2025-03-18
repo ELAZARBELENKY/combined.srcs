@@ -2,12 +2,12 @@
 `include "../../sources_1/new/defines.sv"
 module lw_hmac_tb;
 
-`ifdef CORE_ARCH_S64
+
 
   logic clk_i;
   logic aresetn_i;
   logic start_i;
-  logic abort_i;
+  logic abort_i = 1'b0;
   logic last_i;
   logic data_valid_i;
   logic [`WORD_SIZE-1:0] data_i;
@@ -21,6 +21,7 @@ module lw_hmac_tb;
   logic core_ready_o;
   logic done_o;
   
+  logic hmac_mode;
   logic [25:0] j = 0;
   logic [511:0]compression;
   logic [63:0] data[130];
@@ -31,6 +32,7 @@ module lw_hmac_tb;
   typedef enum logic[3:0] {sha_256=0,sha_224=1,sha_512=4,sha_384=5,sha_512_256=6,sha_512_224=7,
                 HMAC_256=8,HMAC_224=9,HMAC_512=12,HMAC_384=13,HMAC_512_256=14,HMAC_512_224=15} sha_mode;
   test t; sha_mode m; 
+    
   lw_hmac uut (
       .opcode_i(opcode_i),
       .clk_i(clk_i), 
@@ -59,7 +61,7 @@ module lw_hmac_tb;
     int unsigned data_delay = 0, key_delay = 0;
     j = 0;
     while (core_ready_o != 1) @(posedge clk_i);
-    if (opcode_i[3]) begin
+    if (hmac_mode) begin
       do begin #1;
         start_i = j == 0;
         if (j != 0) opcode_i = 0;
@@ -77,7 +79,7 @@ module lw_hmac_tb;
     end
     
     do begin
-      start_i = j == 0 && !opcode_i[3];
+      start_i = j == 0 && !hmac_mode;
       if (j != 0) opcode_i = 0;
       data_valid_i = 1'b1;
       data_i = data[j];
@@ -93,7 +95,29 @@ module lw_hmac_tb;
       j = 0;
     end
     #1 wait (core_ready_o);
-
+    display_output();
+    #100;
+  endtask
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  task automatic delay (input logic data, input int unsigned delay);
+    repeat(delay) begin #1
+      if (data) begin
+        data_valid_i = 1'b0;
+        data_i = '1;
+      end else begin
+        key_valid_i = 1'b0;
+        key_i = '1;
+      end
+      start_i = 1'b0;
+      last_i = 1'b0;
+      @(posedge clk_i);
+    end
+  endtask
+  
+  `ifdef CORE_ARCH_S64
+  assign hmac_mode = opcode_i[3];
+  task automatic display_output();
     if (t==test_1) $display(mode);
     case (m[2:0])
       0: if (hash_o[7:4]==compression[255:0])
@@ -115,23 +139,6 @@ module lw_hmac_tb;
       $display(test_str, "success!!"); else begin $display(test_str, "failed :(  massage input is:");
       $display(input_massage); $display("The output is: %h", hash_o[7:0]);end
     endcase
-    #100;
-  endtask
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
-  task automatic delay (input logic data, input int unsigned delay);
-    repeat(delay) begin #1
-      if (data) begin
-        data_valid_i = 1'b0;
-        data_i = '1;
-      end else begin
-        key_valid_i = 1'b0;
-        key_i = '1;
-      end
-      start_i = 1'b0;
-      last_i = 1'b0;
-      @(posedge clk_i);
-    end
   endtask
   
   task automatic test_vec_1();
@@ -533,122 +540,21 @@ module lw_hmac_tb;
     running_tests(12);//HMAC-512/256
     running_tests(13);//HMAC-512/224
   end
-
-`else `ifdef CORE_ARCH_S32
-
-  reg clk_i;
-  reg aresetn_i;
-  reg start_i;
-  reg last_i;
-  reg data_valid_i;
-  reg [31:0] data_i;
-  reg [1:0] random_i;
-  reg [31:0] key_i;
-  reg [1:0] opcode_i;
-  reg key_valid_i;
-  reg abort_i;
-  wire key_ready_o;
-  wire [31:0] hash_o [7:0];
-  wire ready_o, core_ready_o, done_o;
-  logic [511:0]compression;
-  logic [63:0] data[130];
-  logic [63:0] key[16];
-  typedef enum {test_1,test_2,test_3,test_4,test_5,test_6,test_7} test;
-  typedef enum {sha_256, sha_224, HMAC_256, HMAC_224} sha_mode;
-  test t;sha_mode m;
-  string test_str, input_massage, mode;
-
-  lw_hmac uut ( .aresetn_i(aresetn_i), 
-                .key_valid_i(key_valid_i),
-                .clk_i(clk_i),
-                .opcode_i(opcode_i),
-                .start_i(start_i),
-                .abort_i(abort_i),
-                .data_i(data_i),  
-                .last_i(last_i),
-                .data_valid_i(data_valid_i), 
-                .key_i(key_i),
-                .random_i(random_i), 
-                .hash_o(hash_o),
-                .ready_o(ready_o),
-                .core_ready_o(core_ready_o), 
-                .done_o(done_o),
-                .key_ready_o(key_ready_o) );
-  initial begin
-    clk_i = 0;
-    forever #5 clk_i = ~clk_i;
-  end
-  always @(posedge clk_i) random_i <= $random % 4;
-//assign random_i = 2'b0;
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  task automatic SendBlockData (input [3:0] block_amount);
-    int unsigned j = 0;
-    int unsigned delay = 0;
-    logic hmac = 0;
-    do @(posedge clk_i); while(!core_ready_o);
-    if (opcode_i[1]) begin
-      do begin #1;
-          hmac = 1;
-          start_i = j == 0;
-          if (j != 0) opcode_i = 0;
-          data_valid_i = j == 0;
-          key_valid_i = 1'b1;
-          key_i = key[j];
-//if (j == 9)  abort_i = 1;
-//else if (abort_i==1) begin abort_i = 0; end
-          @(posedge clk_i);
-        if (key_valid_i && key_ready_o) j++;
-        repeat(delay) begin #1
-          key_valid_i = 1'b0;
-          start_i = 1'b0;
-          key_i = '1;
-          last_i = 1'b0;
-          @(posedge clk_i);
-        end
-      end while (j < 'd16);
-      @(posedge clk_i) begin
-        key_valid_i <= 1'b0;
-        j = 0;
-      end
-    end
-
-    do begin
-      if (j != 0) opcode_i = 0;
-      start_i = j == 0;
-      data_valid_i = 1'b1;
-      data_i = data[j];
-      if (j == block_amount*16-1) begin last_i <= 1'b1; end
-//if (!hmac&&j == 15) begin #501 abort_i = 1; j=block_amount*16; end
-//else abort_i = 0;
-      @(posedge clk_i)
-      if (data_valid_i && ready_o) j++;
-      repeat(delay) begin
-        data_valid_i = 1'b0;
-        start_i = 1'b0;
-        data_i = '1;
-        last_i = 1'b0;
-        @(posedge clk_i);
-      end
-    end while (j < block_amount*16);
-    @(posedge clk_i) begin
-      #1
-      abort_i = 0;
-      last_i <= 1'b0;
-      data_valid_i <= 1'b0;
-      j = 0;
-    end
-    wait (core_ready_o);
-      if (t==test_1) $display(mode);
-      if (hash_o[7:0]==compression) begin
-        $display(test_str, "success!!");
-      end else begin
-        $display(test_str, "failed :(  massage input is:");
-        $display(input_massage); $display("The output is: %h", hash_o[7:0]);
-      end
-//    #100;
-  endtask
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+ 
+ `else `ifdef CORE_ARCH_S32 
+ 
+  assign hmac_mode = opcode_i[1];
+  task automatic display_output();
+    if (t==test_1) $display(mode);
+    if (hash_o[7:0]==compression) begin
+      $display(test_str, "success!!");
+    end else begin
+      $display(test_str, "failed :(  massage input is:");
+      $display(input_massage); $display("The output is: %h", hash_o[7:0]);
+    end
+  endtask
+  
   task automatic test_vec_1();
     test_str = "test 1-"; t = test_1;
     input_massage = "NULL";
