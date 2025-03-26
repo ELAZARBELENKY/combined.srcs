@@ -83,24 +83,18 @@ package lw_sha_pkg;
   64'h431d67c49c100d4c, 64'h4cc5d4becb3e42b6, 64'h597f299cfc657e2a, 64'h5fcb6fab3ad6faec, 64'h6c44198c4a475817};
   
     //read_word
-    function automatic logic [`WORD_SIZE-1:0] read_word(input [`WORD_SIZE:0] x, input mode);
-        return x[`WORD_SIZE]?
-        (mode ? {x[`WORD_SIZE/2-1:0], x[`WORD_SIZE-1:`WORD_SIZE/2]}:
-        {x[`WORD_SIZE-1:`WORD_SIZE/2],x[`WORD_SIZE/4-1:0], x[`WORD_SIZE/2-1:`WORD_SIZE/4]}) :
-         x[`WORD_SIZE-1:0];
+    function automatic logic [`WORD_SIZE-1:0] read_word(input [`WORD_SIZE+$clog2(`WORD_SIZE)-1:0] x, input mode);
+        return {right_rotate(x[`WORD_SIZE-1:0],  (mode ? `WORD_SIZE:`WORD_SIZE/2) - x[`WORD_SIZE+$clog2(`WORD_SIZE)-1-:$clog2(`WORD_SIZE)], mode)};
     endfunction
 
     //write_word
-    function automatic logic [`WORD_SIZE:0] write_word(input [`WORD_SIZE-1:0] x, input order, input mode);
-        return order ?
-        (mode ? {1'b1,x[`WORD_SIZE/2-1:0],x[`WORD_SIZE-1:`WORD_SIZE/2]} :
-        {1'b1,x[`WORD_SIZE-1:`WORD_SIZE/2],x[`WORD_SIZE/4-1:0],x[`WORD_SIZE/2-1:`WORD_SIZE/4]}) :
-        {1'b0, x};
+    function automatic logic [`WORD_SIZE+$clog2(`WORD_SIZE)-1:0] write_word(input [`WORD_SIZE-1:0] x, input [$clog2(`WORD_SIZE)-1:0] random, input mode);
+        return {(mode ? random : random[$clog2(`WORD_SIZE)-2:0]), right_rotate(x, (mode ? random : random[$clog2(`WORD_SIZE)-2:0]), mode)};
     endfunction
 
     //right_rotate
-    function automatic logic [`WORD_SIZE-1:0] right_rotate(input [`WORD_SIZE-1:0] x, input [5:0] n, input mode);
-        return mode?
+    function automatic logic [`WORD_SIZE-1:0] right_rotate(input [`WORD_SIZE-1:0] x, input [$clog2(`WORD_SIZE)-1:0] n, input mode);
+        return mode ?
         x >> n | x << (`WORD_SIZE - n):
         x[`WORD_SIZE/2-1:0] >> n | x[`WORD_SIZE/2-1:0] << (`WORD_SIZE/2 - n);
     endfunction
@@ -136,19 +130,17 @@ package lw_sha_pkg;
             32'h90befffa, 32'ha4506ceb, 32'hbef9a3f7, 32'hc67178f2};
 
     //read_word
-    function automatic logic [`WORD_SIZE-1:0] read_word(input [`WORD_SIZE:0] x);
-        return x[`WORD_SIZE]?
-        {x[`WORD_SIZE/2-1:0], x[`WORD_SIZE-1:`WORD_SIZE/2]} : x[`WORD_SIZE-1:0];
+    function automatic logic [`WORD_SIZE-1:0] read_word(input [`WORD_SIZE+$clog2(`WORD_SIZE)-1:0] x);
+        return {right_rotate(x[`WORD_SIZE-1:0],`WORD_SIZE - x[`WORD_SIZE+$clog2(`WORD_SIZE)-1-:$clog2(`WORD_SIZE)])};
     endfunction
      
     //write_word
-    function automatic logic [`WORD_SIZE:0] write_word(input [`WORD_SIZE-1:0] x, input order);
-        return order ?
-        {1'b1,x[`WORD_SIZE/2-1:0],x[`WORD_SIZE-1:`WORD_SIZE/2]} : {1'b0, x};
+    function automatic logic [`WORD_SIZE+$clog2(`WORD_SIZE)-1:0] write_word(input [`WORD_SIZE-1:0] x, input [$clog2(`WORD_SIZE)-1:0] random);
+        return {random , right_rotate(x, random)};
     endfunction
 
     //right_rotate
-    function automatic logic [`WORD_SIZE-1:0] right_rotate(input [`WORD_SIZE-1:0] x, input [4:0] n);
+    function automatic logic [`WORD_SIZE-1:0] right_rotate(input [`WORD_SIZE-1:0] x, input [$clog2(`WORD_SIZE)-1:0] n);
         return x >> n | x << (`WORD_SIZE - {27'b0,n});
     endfunction
 `endif `endif
