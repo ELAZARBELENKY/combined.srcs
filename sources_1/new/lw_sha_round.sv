@@ -14,19 +14,19 @@ import lw_sha_pkg::*;
 (*dont_touch = "true"*)
 module lw_sha_round (
 `ifdef CORE_ARCH_S64
-                           input mode,
+                     input mode,
 `endif
-                         input [`WORD_SIZE-1:0] word,
-                         input [`WORD_SIZE+$clog2(`WORD_SIZE)-1:0] state [7:0],
-                         input [6:0] round_index,
-                         input [$clog2(`WORD_SIZE)*2-1:0] random_i,
-                         output logic [`WORD_SIZE+$clog2(`WORD_SIZE)-1:0] new_state [7:0]);
+                     input [`WORD_SIZE-1:0] word,
+                     input [`WORD_SIZE+1:0] state [7:0],
+                     input [6:0] round_index,
+                     input [3:0] random_i,
+                     output logic [`WORD_SIZE+1:0] new_state [7:0]);
 
   logic [`WORD_SIZE-1:0] delta_a, delta_e, temp1 ,temp2, choice, majority, sum0, sum1;
   logic [`WORD_SIZE-1:0] a, b, c, e, f, g;
-  logic [$clog2(`WORD_SIZE)-1:0] random_a, random_e;
-  assign random_a = random_i[$clog2(`WORD_SIZE)-1:0];
-  assign random_e = random_i[$clog2(`WORD_SIZE)*2-1:$clog2(`WORD_SIZE)];
+  logic [1:0] random_a, random_e;
+  assign random_a = random_i[1:0];
+  assign random_e = random_i[3:2];
 `ifdef CORE_ARCH_S64
   assign a = read_word(state[7],mode);
   assign b = read_word(state[6],mode);

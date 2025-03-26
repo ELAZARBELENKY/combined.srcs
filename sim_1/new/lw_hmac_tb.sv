@@ -11,7 +11,7 @@ module lw_hmac_tb;
   logic last_i;
   logic data_valid_i;
   logic [`WORD_SIZE-1:0] data_i;
-  logic [$clog2(`WORD_SIZE)*2-1:0] random_i;
+  logic [3:0] random_i;
   logic [3:0] opcode_i;
   logic [`WORD_SIZE-1:0] key_i;
   logic key_valid_i = 1'b1;
@@ -55,7 +55,7 @@ module lw_hmac_tb;
     clk_i = 0;
     forever #5 clk_i = ~clk_i;
   end
-  always @(posedge clk_i) random_i <= $random % (`WORD_SIZE*`WORD_SIZE);
+  always @(posedge clk_i) random_i <= $random % 16;
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   task automatic SendBlockData (input [3:0]block_amount);
     int unsigned data_delay = 0, key_delay = 0;

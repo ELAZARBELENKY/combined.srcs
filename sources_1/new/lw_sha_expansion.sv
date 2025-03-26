@@ -15,7 +15,7 @@ import lw_sha_pkg::*;
 (*dont_touch = "true"*)
 module lw_sha_expansion (
 `ifdef CORE_ARCH_S64
-                           input mode,
+                          input mode,
 `endif
                           input [3:0] round_index,
                           input [`WORD_SIZE-1:0] w[15:0],
