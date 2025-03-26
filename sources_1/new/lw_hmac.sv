@@ -24,7 +24,7 @@ module lw_hmac ( input clk_i,
                  input last_i,
                  input data_valid_i,
                  input [`WORD_SIZE-1:0] data_i,
-                 input [$clog2(`WORD_SIZE)*2-1:0] random_i,
+                 input [3:0] random_i,
 `ifdef CORE_ARCH_S64
                  input [3:0] opcode_i,
 `else `ifdef CORE_ARCH_S32
