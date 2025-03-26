@@ -1,5 +1,5 @@
 //*
-//*  Copyright © 2024 FortifyIQ, Inc.
+//*  Copyright ï¿½ 2024 FortifyIQ, Inc.
 //*
 //*  All Rights Reserved.
 //*
@@ -10,11 +10,11 @@
 //*
 `timescale 1ns / 1ps
 import lw_sha_pkg::*;
-`include "defines.sv"
+`include "defines.v"
 
 `ifdef CORE_ARCH_S64
-localparam logic [3:0] padding_one [6]= '{4'd7,4'd8,4'd7,4'd9,4'd11,4'd12};
-localparam logic [63:0] length_field [6]= '{64'h300,64'h2e0,64'h600,64'h580,64'h500,64'h4e0};
+  localparam logic [3:0] padding_one [6]= '{4'd7,4'd8,4'd7,4'd9,4'd11,4'd12};
+  localparam logic [63:0] length_field [6]= '{64'h300,64'h2e0,64'h600,64'h580,64'h500,64'h4e0};
 `endif
 
 module lw_hmac ( input clk_i,
@@ -25,11 +25,11 @@ module lw_hmac ( input clk_i,
                  input data_valid_i,
                  input [`WORD_SIZE-1:0] data_i,
                  input [1:0] random_i,
-                 `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
                  input [3:0] opcode_i,
-                 `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
                  input [1:0] opcode_i,
-                 `endif `endif
+`endif `endif
                  input [`WORD_SIZE-1:0] key_i,
                  input key_valid_i,
                  output logic key_ready_o,
@@ -41,12 +41,12 @@ module lw_hmac ( input clk_i,
 
 
   logic [3:0] counter = 4'b0;
-  `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
   logic [2:0] mode = 3'b0;
   logic s64;
-  `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
   logic mode = 1'b0;
-  `endif `endif
+`endif `endif
   logic [`WORD_SIZE-1:0] key_reg[15:0] = '{default: '0};
   logic [`WORD_SIZE-1:0] sha_output[7:0];
   logic [`WORD_SIZE-1:0] inner_hashed[7:0] = '{default: '0};;
@@ -77,7 +77,7 @@ module lw_hmac ( input clk_i,
   assign hmac_last = inner_hash?last_i&&!fb:!fb;
   assign hmac_data_valid = inner_hash && !done_hash ? (fb ? key_valid_i : data_valid_i) : 1'b1;
   assign hmac = ns == hmac_op;
-  `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
   assign s64 = mode[2]||mode[1];
   always_comb begin
     if (inner_hash) hmac_data = fb ? key_i ^ {16{8'h36}} : data_i;
@@ -94,14 +94,14 @@ module lw_hmac ( input clk_i,
       end else if (counter == 0) hmac_data = length_field[mode];
     end
   end
-  `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
   assign hmac_data = inner_hash ? (fb?key_i^{8{8'h36}}:data_i):
                       fb ? key_reg[counter]:
                       counter == (mode?8:7) ? 32'h80000000:
                       counter==0 ? mode?32'h2e0:32'h300:
                       counter[3] ? inner_hashed[counter[2:0]] : 32'b0;
-  `endif `endif
-  
+`endif `endif
+
   always_comb begin
     case (ps)
       hmac_op: begin
@@ -117,11 +117,11 @@ module lw_hmac ( input clk_i,
       end
       not_active: begin
         if (start_i && data_valid_i) begin
-         `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
           if (opcode_i[3]) begin
-         `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
           if (opcode_i[1]) begin
-         `endif `endif
+`endif `endif
             ns = hmac_op;
           end else begin
             ns = sha_op;
@@ -177,11 +177,11 @@ module lw_hmac ( input clk_i,
               counter <= counter - 1;
             end
           end
-          `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
           if (fb) key_reg[counter] <= key_i^{16{8'h5c}};
-          `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
           if (fb) key_reg[counter] <= key_i^{8{8'h5c}};
-          `endif `endif
+`endif `endif
           if (done_hash) begin
             inner_hash <= 1'b0;
             inner_hashed <= sha_output;
@@ -207,9 +207,9 @@ module lw_hmac ( input clk_i,
         counter <= 4'hf;
         done_o <= 1'b0;
         mode <= opcode_i;
-        `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
         if (opcode_i [2:1] == 2'b11) ps <= not_active;
-        `endif
+`endif
       end else if (ps == sha_op && done_hash && !abort_i) begin
         done_o <= 1'b1;
         hash_o <= sha_output;

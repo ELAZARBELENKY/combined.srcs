@@ -10,7 +10,7 @@
 
 `timescale 1ns / 1ps
 import lw_sha_pkg::*;
-`include "defines.sv"
+`include "defines.v"
 module lw_sha_main( input clk_i,
                     input aresetn_i,
                     input start_i,
@@ -19,11 +19,11 @@ module lw_sha_main( input clk_i,
                     input data_valid_i,
                     input [`WORD_SIZE-1:0] data_i,
                     input [1:0] random_i,
-                    `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
                     input [2:0] opcode_i,
-                    `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
                     input opcode_i,
-                    `endif `endif
+`endif `endif
                     output logic [`WORD_SIZE-1:0] hash_o[7:0],
                     output logic ready_o,
                     output logic core_ready_o,
@@ -36,21 +36,21 @@ module lw_sha_main( input clk_i,
   logic [6:0] round_index = '{default:'0};
   logic finish = 1'b0;
   logic proccess_is_active;
-  `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
   logic [2:0] mode = 3'b000;
   logic s64;
-  `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
   logic mode = 1'b0;
-  `endif `endif
+`endif `endif
   typedef enum logic {not_active=1'b0, active=1'b1} status;
   status ns, ps = not_active;
 
   //instantiations
   // Round calculation
   lw_sha_round round (
-  `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
   .mode(s64),
-  `endif
+`endif
   .word(word),
   .state(state),
   .round_index(round_index),
@@ -60,9 +60,9 @@ module lw_sha_main( input clk_i,
 
   // Message schedule expansion
   lw_sha_expansion expand (
-  `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
   .mode(s64),
-  `endif
+`endif
   .round_index(round_index[3:0]),
   .w(w),
   .expanded_word(expanded_word)
@@ -79,13 +79,13 @@ module lw_sha_main( input clk_i,
         end
       end
       active: begin
-      `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
         if (round_index == (s64 ? 'd81 : 'd65) || abort_i) begin
           ready_o = s64 ? 'd81 : 'd65;
-       `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
           if (round_index == 7'd65 || abort_i) begin
           ready_o = round_index == 7'd65;
-       `endif `endif
+`endif `endif
           ns = not_active;
         end else begin
           ns = active;
@@ -115,16 +115,16 @@ module lw_sha_main( input clk_i,
       core_ready_o <= ns == not_active;
       ps <= ns;
       if (proccess_is_active) begin
-        `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
         if (round_index == (s64 ? 'd80 : 'd64 )) begin
-        `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
         if (round_index == 7'd64) begin
-        `endif `endif
+`endif `endif
           if (finish) begin
             round_index <= round_index + 7'b1;
             done_o <= 1'b1;
             finish <= 1'b0;
-            `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
             hash_o <= '{default:'0};
             if (s64) begin
               for (int i = 0; i < 8; i++) begin
@@ -149,20 +149,20 @@ module lw_sha_main( input clk_i,
             round_index <= 'b0;
             foreach (initial_state[i]) begin
               initial_state[i] <= initial_state[i] + read_word(state[i],s64);
-              state[i] <= {1'b0, initial_state[i] + read_word(state[i],s64)};
+              state[i] <= {initial_state[i] + read_word(state[i],s64)};/////////////////////////
             end
           end
-            `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
             foreach (hash_o[i]) hash_o[i] <= initial_state[i] + read_word(state[i]);
             if (mode) hash_o[0] <= '0;
           end else begin
             round_index <= 'b0;
             foreach (initial_state[i]) begin
               initial_state[i] <= initial_state[i] + read_word(state[i]);
-              state[i] <= {1'b0, initial_state[i] + read_word(state[i])};
+              state[i] <= {initial_state[i] + read_word(state[i])};/////////////////////////
             end
           end
-            `endif `endif
+`endif `endif
         end else begin
           done_o <= 1'b0;
           w[round_index[3:0]] <= word;
@@ -177,22 +177,22 @@ module lw_sha_main( input clk_i,
         done_o <= 1'b0;
         round_index <= 'b0;
         mode <= opcode_i;
-        `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
         if (opcode_i [2:1] == 2'b11) ps <= not_active;
         initial_state <= standard_initial_state[opcode_i];
         foreach (state[i]) state[i] <= standard_initial_state[opcode_i][i];
-        `else `ifdef CORE_ARCH_S32
+`else `ifdef CORE_ARCH_S32
         initial_state <= opcode_i ? standard_initial_state224:standard_initial_state256;
         foreach (state[i])
         state[i] <= opcode_i ? standard_initial_state224[i]:standard_initial_state256[i];
-        `endif `endif
+`endif `endif
       end else done_o <= 1'b0;
     end
   end
   
-  `ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64
   assign s64 = mode[2]||mode[1];
-  `endif
+`endif
   assign word = round_index[6:4]== 3'b000 ? data_i : expanded_word; 
   assign proccess_is_active = (ps==active)&&
   (data_valid_i || round_index[6:4]!=3'h0);
