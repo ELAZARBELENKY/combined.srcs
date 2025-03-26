@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`include "../../sources_1/new/defines.sv"
+`include "../../sources_1/new/defines.v"
 module lw_hmac_tb;
 
 

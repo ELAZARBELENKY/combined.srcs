@@ -9,7 +9,7 @@
 //*
 //*
 `timescale 1ns / 1ps
-`include "defines.sv"
+`include "defines.v"
 
 package lw_sha_pkg;
 

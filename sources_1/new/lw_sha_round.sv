@@ -10,7 +10,7 @@
 //*
 `timescale 1ns / 1ps
 import lw_sha_pkg::*;
-`include "defines.sv"
+`include "defines.v"
 module lw_sha_round (    `ifdef CORE_ARCH_S64
                            input mode,
                          `endif

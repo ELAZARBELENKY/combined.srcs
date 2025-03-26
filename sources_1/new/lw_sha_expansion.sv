@@ -11,10 +11,11 @@
 
 `timescale 1ns / 1ps
 import lw_sha_pkg::*;
-`include "defines.sv"
-module lw_sha_expansion (`ifdef CORE_ARCH_S64
+`include "defines.v"
+module lw_sha_expansion (
+`ifdef CORE_ARCH_S64
                            input mode,
-                         `endif
+`endif
                           input [3:0] round_index,
                           input [`WORD_SIZE-1:0] w[15:0],
                           output [`WORD_SIZE-1:0] expanded_word);
