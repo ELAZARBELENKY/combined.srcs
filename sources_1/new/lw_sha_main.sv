@@ -11,6 +11,7 @@
 `timescale 1ns / 1ps
 import lw_sha_pkg::*;
 `include "defines.v"
+(*dont_touch = "true"*)
 module lw_sha_main( input clk_i,
                     input aresetn_i,
                     input start_i,
