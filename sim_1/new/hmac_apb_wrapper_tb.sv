@@ -63,14 +63,16 @@ module hmac_apb_wrapper_tb;
         // Test Sequence
         $display("Starting HMAC operation...");
 
-        // 1. Write 512-bit key (8 words)
+        // 1. Write 1024-bit key (16 words)
         $display("Writing key...");
-        for (int i = 0; i < 8; i++) begin
-            apb_write(12'h140, 32'h01234567 + i*16);
+        for (int i = 0; i < 16; i++) begin
+            apb_write(12'h140, 64'h0123456789abcdef + i*16);
+            @(posedge pclk);
         end
 
         // 2. Start HMAC operation
         $display("Starting HMAC...");
+        apb_write(12'h144, 32'hDEADBEEF);
         apb_write(12'h020, 32'h1); // INIT=1
 
         // 3. Write data packets

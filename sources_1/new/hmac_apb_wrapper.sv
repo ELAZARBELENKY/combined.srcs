@@ -79,6 +79,7 @@ module hmac_apb_wrapper #(
     logic [31:0]          cfg_reg;
     logic [31:0]          ie_reg; // Interrupt Enable
 
+    logic start_pending;
     // Instantiate APB Slave Adapter
     apb_slave_adapter #(
         .D_WIDTH(D_WIDTH),
@@ -138,10 +139,10 @@ module hmac_apb_wrapper #(
     always_ff @(posedge pclk or negedge presetn) begin
         if (!presetn) begin
             // Reset all registers
-            hmac_start_i <= 0;
+            //hmac_start_i <= 0;
             hmac_abort_i <= 0;
             hmac_last_i <= 0;
-            hmac_data_valid_i <= 0;
+            //hmac_data_valid_i <= 0;
             hmac_opcode_i <= 0;
             hmac_key_valid_i <= 0;
             key_index <= 0;
@@ -167,7 +168,7 @@ module hmac_apb_wrapper #(
                         hmac_abort_i <= con_wdata[2]; // ABORT
                         hmac_last_i <= con_wdata[1];   // LAST
                         if (con_wdata[0]) begin       // INIT
-                            hmac_start_i <= 1;
+                            //hmac_start_i <= 1;
                             operation_active <= 1;
                         end
                     end
@@ -202,14 +203,14 @@ module hmac_apb_wrapper #(
             // Handle data processing
             if (operation_active && !fifo_empty && hmac_ready_o) begin
                 hmac_data_i <= fifo[0];
-                hmac_data_valid_i <= 1;
+                //hmac_data_valid_i <= 1;
                 // Shift FIFO
                 for (int i = 0; i < FIFO_SIZE-1; i++) begin
                     fifo[i] <= fifo[i+1];
                 end
                 fifo_count <= fifo_count - 1;
             end else begin
-                hmac_data_valid_i <= 0;
+                //hmac_data_valid_i <= 0;
             end
             
             // Handle HMAC completion
@@ -234,6 +235,31 @@ module hmac_apb_wrapper #(
             end
         end
     end
+
+    always_ff @(posedge pclk or negedge presetn) begin
+      if (!presetn) begin
+        hmac_start_i <= 0;
+        start_pending <= 0;
+      end
+      else begin
+        // Capture start request when INIT is written
+        if (con_waddr == 12'h020 && con_wr && con_wdata[0] && hmac_core_ready_o) begin
+          start_pending <= 1;
+        end
+        
+        // Assert start_i only when we can also assert data_valid_i
+        hmac_start_i <= start_pending && !fifo_empty;
+        
+        // Clear pending start once executed
+        if (hmac_start_i) begin
+          start_pending <= 0;
+        end
+      end
+    end
+
+// Data valid follows normal FIFO rules but must account for start sequence
+    assign hmac_data_valid_i = (!fifo_empty && hmac_ready_o) || 
+                               (start_pending && !fifo_empty);
 
     // Read logic
     always_comb begin

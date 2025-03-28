@@ -37,7 +37,7 @@ module lw_hmac ( input clk_i,
                  output logic ready_o ,
                  output logic core_ready_o,
                  output logic done_o,
-                 output logic fault_inj_det_o = 1'b0);
+                 output logic fault_inj_det_o);
 
 
   logic [3:0] counter = 4'b0;
@@ -73,7 +73,7 @@ module lw_hmac ( input clk_i,
                         .core_ready_o(),
                         .done_o(done_hash));
 //////////////////////////////////////////////////////////////////////////////////////////////
-
+  assign fault_inj_det_o = 1'b0;
   assign hmac_last = inner_hash?last_i&&!fb:!fb;
   assign hmac_data_valid = inner_hash && !done_hash ? (fb ? key_valid_i : data_valid_i) : 1'b1;
   assign hmac = ns == hmac_op;
