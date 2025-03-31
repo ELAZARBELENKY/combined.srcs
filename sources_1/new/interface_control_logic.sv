@@ -9,63 +9,59 @@
 //*
 
 `define FIQSHA_PRNG_INIT "SW"
-
+`include "defines.v"
 module interface_control_logic #(
-    parameter int FIQSHA_BUS_DATA_WIDTH = 32
-  , parameter int FIQSHA_FIFO_SIZE = 4
-  , parameter int BYTE_MAP_SZ = 2048
-  , parameter int ARCH_SZ = 32
-  , parameter bit INCLUDE_PRNG = 0
-  , parameter bit BURST_EN = 0
-  , parameter bit BYTE_ACCESS_EN = 0
-  , parameter ID_VAL = 32'h0
+   parameter int FIQSHA_BUS_DATA_WIDTH = 32,
+   parameter int FIQSHA_FIFO_SIZE = 4,
+   parameter int BYTE_MAP_SZ = 2048,
+   parameter int ARCH_SZ = `WORD_SIZE,
+   parameter bit INCLUDE_PRNG = 0,
+   parameter bit BURST_EN = 0,
+   parameter bit BYTE_ACCESS_EN = 0,
+   parameter logic [31:0] ID_VAL = 32'h0
 ) (
-    input clk_i                                       // clock signal
-  , input resetn_i                                    // reset,
-  , input wr_i                                        // write from bus interface adapter
-  , output reg wr_ack_o                               // write ackowledge to bus interface adapter
-  , input rd_i                                        // read request from bus interface adapter
-  , input rd_ack_i                                    // read ack from bus interface adapter
-  , input [11:0] waddr_i                              // write address
-  , input [11:0] wtransaction_cnt_i
-  , input [11:0] raddr_i                              // read adress
-  , input [11:0] rtransaction_cnt_i
-  , input [FIQSHA_BUS_DATA_WIDTH-1:0] wdata_i         // write data
-  , input [FIQSHA_BUS_DATA_WIDTH/8-1:0] wbyte_enable_i// write data bytes strobs
-  , input [FIQSHA_BUS_DATA_WIDTH/8-1:0] rbyte_enable_i// read data bytes strobs
-  , output reg [FIQSHA_BUS_DATA_WIDTH-1:0] rdata_o    // read data
-  , output reg read_valid_o                           // read data validation strob
-  , input read_ready_i                                // ready for read from a bus interface adapter
-  , input [255:0] aux_key_i // dedicated key port to protected secret input instead bus transaction.
-  , input wstuck_i
-  , input rstuck_i
-  , input [1:0] burst_type_i
-  , input new_write_transaction_i
-  , input wtransaction_active_i
-  , input new_read_transaction_i
-  , input rtransaction_active_i
-  , output irq_o
+    input clk_i,                                      // clock signal
+   input resetn_i,                                    // reset,
+   input wr_i,                                        // write from bus interface adapter
+   output reg wr_ack_o,                               // write ackowledge to bus interface adapter
+   input rd_i,                                        // read request from bus interface adapter
+   input rd_ack_i,                                    // read ack from bus interface adapter
+   input [11:0] waddr_i,                              // write address
+   input [11:0] wtransaction_cnt_i,
+   input [11:0] raddr_i,                              // read adress
+   input [11:0] rtransaction_cnt_i,
+   input [FIQSHA_BUS_DATA_WIDTH-1:0] wdata_i,         // write data
+   input [FIQSHA_BUS_DATA_WIDTH/8-1:0] wbyte_enable_i,// write data bytes strobs
+   input [FIQSHA_BUS_DATA_WIDTH/8-1:0] rbyte_enable_i,// read data bytes strobs
+   output reg [FIQSHA_BUS_DATA_WIDTH-1:0] rdata_o,    // read data
+   output reg read_valid_o,                           // read data validation strob
+   input read_ready_i,                                // ready for read from a bus interface adapter
+   input [255:0] aux_key_i, // dedicated key port to protected secret input instead bus transaction.
+   input wstuck_i,
+   input rstuck_i,
+   input [1:0] burst_type_i,
+   input new_write_transaction_i,
+   input wtransaction_active_i,
+   input new_read_transaction_i,
+   input rtransaction_active_i,
+   output irq_o,
   // native interface
-  , output reg start_o
-  , output abort_o
-  , output last_o
-  , output [3:0] opcode_o
-  , output [ARCH_SZ*8-1:0] state_o
-  , output [ARCH_SZ*8-1:0] state_share2_o
-  , output [ARCH_SZ*8-1:0] state_share3_o
-  , output [ARCH_SZ-1:0] data_o
-  , input [ARCH_SZ*8-1:0] hash_i
-  , output reg valid_o
-  , input ready_i
-  , input core_ready_i
-  , input done_i
-  , input fault_inj_det_i
-  , output dma_wr_req_o
-  , output dma_rd_req_o
-  , output slv_error_o
-  , output reg core_reset_o
+   output reg start_o,
+   output abort_o,
+   output last_o,
+   output [3:0] opcode_o,
+   output [ARCH_SZ-1:0] data_o,
+   input [ARCH_SZ-1:0] hash_i[7:0],
+   output reg valid_o,
+   input ready_i,
+   input core_ready_i,
+   input done_i,
+   input fault_inj_det_i,
+   output dma_wr_req_o,
+   output dma_rd_req_o,
+   output slv_error_o,
+   output reg core_reset_o
 );
-
   typedef struct {
     logic [15:0] majorid;
     logic [15:0] minorid;
@@ -121,17 +117,16 @@ module interface_control_logic #(
   logic [31:0] id_reg = ID_VAL;
   logic [31:0] cfg_reg, ctl_reg, sts_reg, ie_reg, seed_reg;
   logic [8*ARCH_SZ-1:0] hash_reg;
-  logic [8*3*ARCH_SZ-1:0] state_reg;
   logic fifo_fixed_transaction;
   logic block_fixed_wtransaction_incr;
   logic block_fixed_rtransaction_incr;
   logic wr_less_than_bus_width;
   logic rd_less_than_bus_width;
-  
+
   logic init_ack, last_ack, abort_ack, avl_clr, rdy_clr,
-          derr_clr, busy_clr, faultinjdet_clr, keyunlocked_clr,
-            avl_set, rdy_set, derr_set, busy_set,
-              faultinjdet_set, keyunlocked_set;
+        derr_clr, busy_clr, faultinjdet_clr, keyunlocked_clr,
+        avl_set, rdy_set, derr_set, busy_set,
+        faultinjdet_set, keyunlocked_set;
 
   localparam byte BUS_DATA_IN_ARCH_SZ = (ARCH_SZ + FIQSHA_BUS_DATA_WIDTH - 1)/FIQSHA_BUS_DATA_WIDTH;
   localparam FIFO_DATA_WIDTH = ARCH_SZ >= FIQSHA_BUS_DATA_WIDTH ? FIQSHA_BUS_DATA_WIDTH : ARCH_SZ;
@@ -159,8 +154,6 @@ module interface_control_logic #(
   localparam DIN_SIZE = ARCH_SZ == 32 ? (4 * 32) : (4 * 64);
   localparam HASH_ADDR = 12'h100;
   localparam HASH_SIZE = ARCH_SZ == 32 ? (8 * 32) : (8 * 64);
-  localparam STATE_ADDR = 12'h200;
-  localparam STATE_SIZE = 3*HASH_SIZE;
 
   wire use_extended_waddr =
        BURST_EN
@@ -180,11 +173,6 @@ module interface_control_logic #(
   wire [11:0] raddr_actual = use_extended_raddr ?
     raddr_i + (rtransaction_cnt_i << $clog2(FIQSHA_BUS_DATA_WIDTH/8)) :
     raddr_i;
-  
-  wire [$clog2(STATE_SIZE/8)-$clog2(FIQSHA_BUS_DATA_WIDTH/8)-1:0] state_reg_word_wptr = 
-    waddr_actual[$clog2(STATE_SIZE/8)-1:$clog2(FIQSHA_BUS_DATA_WIDTH/8)];
-
-  wire state_reg_write_access = waddr_actual[11:$clog2(STATE_SIZE/8)] === STATE_ADDR[11:$clog2(STATE_SIZE/8)];
 
   always_ff @(posedge clk_i or negedge resetn_i) begin
     if (~resetn_i) begin
@@ -245,12 +233,12 @@ module interface_control_logic #(
               seed_reg <= {31'h0, wdata_i[0]};
           end
           default: begin
-            if (state_reg_write_access) begin
-              for (int i = 0; i < STATE_SIZE/FIQSHA_BUS_DATA_WIDTH; i++) begin
-                if (i === state_reg_word_wptr)
-                  state_reg[i*FIQSHA_BUS_DATA_WIDTH +: FIQSHA_BUS_DATA_WIDTH] <= wdata_i;
-              end
-            end
+            // if (state_reg_write_access) begin
+            //   for (int i = 0; i < STATE_SIZE/FIQSHA_BUS_DATA_WIDTH; i++) begin
+            //     if (i === state_reg_word_wptr)
+            //       state_reg[i*FIQSHA_BUS_DATA_WIDTH +: FIQSHA_BUS_DATA_WIDTH] <= wdata_i;
+            //   end
+            // end
           end
         endcase // waddr_i[11:2]
       end
@@ -265,7 +253,6 @@ module interface_control_logic #(
         ctl_reg <= '0;
         sts_reg <= 32'h2;
         ie_reg <= 32'h2;
-        state_reg <= '0;
       end
     end
   end
@@ -294,9 +281,9 @@ module interface_control_logic #(
             wr_less_than_bus_width = BURST_EN && FIQSHA_BUS_DATA_WIDTH > 32;
           end
           default: begin
-            if (waddr_actual[11:$clog2(STATE_SIZE/8)] === STATE_ADDR[11:$clog2(STATE_SIZE/8)]) begin
-              wr_less_than_bus_width = BURST_EN && FIQSHA_BUS_DATA_WIDTH > STATE_SIZE;
-            end
+//            if (waddr_actual[11:$clog2(STATE_SIZE/8)] === STATE_ADDR[11:$clog2(STATE_SIZE/8)]) begin
+//              wr_less_than_bus_width = BURST_EN && FIQSHA_BUS_DATA_WIDTH > STATE_SIZE;
+//            end
           end
         endcase // waddr_i[11:2]
       end
@@ -324,9 +311,10 @@ module interface_control_logic #(
           rd_less_than_bus_width = BURST_EN && FIQSHA_BUS_DATA_WIDTH > 32 && rd_i;
         end
         default: begin
-          if (raddr_actual[11:$clog2(STATE_SIZE/8)] === STATE_ADDR[11:$clog2(STATE_SIZE/8)]) begin
-            rd_less_than_bus_width = BURST_EN && FIQSHA_BUS_DATA_WIDTH > STATE_SIZE && rd_i;
-          end else if (raddr_actual[11:$clog2(HASH_SIZE/8)] === HASH_ADDR[11:$clog2(HASH_SIZE/8)]) begin
+//          if (raddr_actual[11:$clog2(STATE_SIZE/8)] === STATE_ADDR[11:$clog2(STATE_SIZE/8)]) begin
+//            rd_less_than_bus_width = BURST_EN && FIQSHA_BUS_DATA_WIDTH > STATE_SIZE && rd_i;
+//          end else
+          if (raddr_actual[11:$clog2(HASH_SIZE/8)] === HASH_ADDR[11:$clog2(HASH_SIZE/8)]) begin
             rd_less_than_bus_width = BURST_EN && FIQSHA_BUS_DATA_WIDTH > HASH_SIZE && rd_i;
           end
         end
@@ -467,53 +455,53 @@ module interface_control_logic #(
 
   always_comb begin
     id = '{
-        majorid: id_reg[31:16]
-      , minorid: id_reg[15:0]
+     majorid: id_reg[31:16],
+     minorid: id_reg[15:0]
     };
 
     cfg = '{
-        srst: cfg_reg[31]
-      , fifointhld: cfg_reg[12:8]
-      , hmacsavekey: cfg_reg[6]
-      , hmacuseintkey: cfg_reg[5]
-      , hmacauxkey: cfg_reg[4]
-      , opcode: cfg_reg[3:0]
+       srst: cfg_reg[31],
+       fifointhld: cfg_reg[12:8],
+       hmacsavekey: cfg_reg[6],
+       hmacuseintkey: cfg_reg[5],
+       hmacauxkey: cfg_reg[4],
+       opcode: cfg_reg[3:0]
     };
 
     ctl = '{
-        abort: ctl_reg[2]
-      , last: ctl_reg[1]
-      , init: ctl_reg[0]
+       abort: ctl_reg[2],
+       last: ctl_reg[1],
+       init: ctl_reg[0]
     };
 
     sts = '{
-        fifoinlvl: sts_reg[12:8]
-      , keyunlocked: sts_reg[5]
-      , faultinjdet: sts_reg[4]
-      , busy: sts_reg[3]
-      , derr: sts_reg[2]
-      , rdy: sts_reg[1]
-      , avl: sts_reg[0]
+       fifoinlvl: sts_reg[12:8],
+       keyunlocked: sts_reg[5],
+       faultinjdet: sts_reg[4],
+       busy: sts_reg[3],
+       derr: sts_reg[2],
+       rdy: sts_reg[1],
+       avl: sts_reg[0]
     };
 
     ie = '{
-        keyunlockedie: ie_reg[5]
-      , faultinjdetie: ie_reg[4]
-      , busyie: ie_reg[3]
-      , derrie: ie_reg[2]
-      , rdyie: ie_reg[1]
-      , avlie: ie_reg[0]
+       keyunlockedie: ie_reg[5],
+       faultinjdetie: ie_reg[4],
+       busyie: ie_reg[3],
+       derrie: ie_reg[2],
+       rdyie: ie_reg[1],
+       avlie: ie_reg[0]
     };
 
-    if (ARCH_SZ > 32)
+    if (ARCH_SZ != 32)////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       hash.hashhigh = hash_reg[4*ARCH_SZ +: 4*ARCH_SZ];
     else
       hash.hash[4*ARCH_SZ +: 4*ARCH_SZ] = hash_reg[4*ARCH_SZ +: 4*ARCH_SZ];
     hash.hash[0 +: 4*ARCH_SZ] = hash_reg[0 +: 4*ARCH_SZ];
 
-    for (int j = 0; j < 3; j++) begin
-      state.statesh[j] = state_reg[j*8*ARCH_SZ +: 8*ARCH_SZ];
-    end
+//    for (int j = 0; j < 3; j++) begin
+//      state.statesh[j] = state_reg[j*8*ARCH_SZ +: 8*ARCH_SZ];
+//    end
 
     if (`FIQSHA_PRNG_INIT == "SW") begin
       seed.seed = seed_reg;
@@ -523,16 +511,16 @@ module interface_control_logic #(
   end
 
   assign irq_o =
-      (sts.keyunlocked & ie.keyunlockedie)
-    | (sts.faultinjdet & ie.faultinjdetie)
-    | (sts.busy & ie.busyie)
-    | (sts.derr & ie.derrie)
-    | (sts.rdy & ie.rdyie)
-    | (sts.avl & ie.avlie);
+     (sts.keyunlocked & ie.keyunlockedie) |
+     (sts.faultinjdet & ie.faultinjdetie) |
+     (sts.busy & ie.busyie) |
+     (sts.derr & ie.derrie) |
+     (sts.rdy & ie.rdyie) |
+     (sts.avl & ie.avlie);
 
   always_ff @(posedge clk_i) begin
     if (done_i)
-      hash_reg <= hash_i;
+      hash_reg <= {hash_i[7],hash_i[6],hash_i[5],hash_i[4],hash_i[3],hash_i[2],hash_i[1],hash_i[0]};
     if (cfg.srst)
       hash_reg <= '0;
   end
@@ -545,9 +533,9 @@ module interface_control_logic #(
     end
   end
 
-  assign state_o = cfg.hmacsavekey ? aux_key_i : state.statesh[0];
-  assign state_share2_o = cfg.hmacsavekey ? '0 : state.statesh[1];
-  assign state_share3_o = cfg.hmacsavekey ? '0 : state.statesh[2];
+//  assign state_o = cfg.hmacsavekey ? aux_key_i : state.statesh[0];
+//  assign state_share2_o = cfg.hmacsavekey ? '0 : state.statesh[1];
+//  assign state_share3_o = cfg.hmacsavekey ? '0 : state.statesh[2];
 
   assign dma_wr_req_o = sts.rdy;
   assign dma_rd_req_o = sts.avl;
@@ -585,7 +573,7 @@ module interface_control_logic #(
       end else begin
         if (start_o & ready_i & valid_o) begin
           start_o <= 1'b0;
-        end else if (core_ready_i & ctl.init & ~empty) begin
+        end else if (core_ready_i & ctl.init) begin// & ~empty
           start_o <= 1'b1;
           data_cnt <= '0;
         end
@@ -611,8 +599,8 @@ module interface_control_logic #(
     end
   end
 
-  wire [$clog2(STATE_SIZE/8)-$clog2(FIQSHA_BUS_DATA_WIDTH/8)-1:0] state_reg_word_rptr = 
-    raddr_actual[$clog2(STATE_SIZE/8)-1:$clog2(FIQSHA_BUS_DATA_WIDTH/8)];
+//  wire [$clog2(STATE_SIZE/8)-$clog2(FIQSHA_BUS_DATA_WIDTH/8)-1:0] state_reg_word_rptr = 
+//    raddr_actual[$clog2(STATE_SIZE/8)-1:$clog2(FIQSHA_BUS_DATA_WIDTH/8)];
   wire [$clog2(HASH_SIZE/8)-$clog2(FIQSHA_BUS_DATA_WIDTH/8)-1:0] hash_reg_word_rptr = 
     raddr_actual[$clog2(HASH_SIZE/8)-1:$clog2(FIQSHA_BUS_DATA_WIDTH/8)];
           
@@ -660,12 +648,13 @@ module interface_control_logic #(
           rdata_o[0] = seed.seed;
       end
       default: begin
-        if (raddr_actual[11:$clog2(STATE_SIZE/8)] === STATE_ADDR[11:$clog2(STATE_SIZE/8)]) begin
-          for (int i = 0; i < STATE_SIZE/FIQSHA_BUS_DATA_WIDTH; i++) begin
-            if (i === state_reg_word_rptr)
-              rdata_o = state_reg[i*FIQSHA_BUS_DATA_WIDTH +: FIQSHA_BUS_DATA_WIDTH];
-          end
-        end else if (raddr_actual[11:$clog2(HASH_SIZE/8)] === HASH_ADDR[11:$clog2(HASH_SIZE/8)]) begin
+//        if (raddr_actual[11:$clog2(STATE_SIZE/8)] === STATE_ADDR[11:$clog2(STATE_SIZE/8)]) begin
+//          for (int i = 0; i < STATE_SIZE/FIQSHA_BUS_DATA_WIDTH; i++) begin
+//            if (i === state_reg_word_rptr)
+//              rdata_o = state_reg[i*FIQSHA_BUS_DATA_WIDTH +: FIQSHA_BUS_DATA_WIDTH];
+//          end
+//        end else
+        if (raddr_actual[11:$clog2(HASH_SIZE/8)] === HASH_ADDR[11:$clog2(HASH_SIZE/8)]) begin
           for (int i = 0; i < HASH_SIZE/FIQSHA_BUS_DATA_WIDTH; i++) begin
             if (i === hash_reg_word_rptr)
               rdata_o = hash_reg[i*FIQSHA_BUS_DATA_WIDTH +: FIQSHA_BUS_DATA_WIDTH];
