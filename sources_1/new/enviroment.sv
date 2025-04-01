@@ -96,10 +96,10 @@ class environment #(parameter BUS_DATA_WIDTH = 32, parameter ARCH_SZ = `WORD_SIZ
 //            end
 //          end
 //        end
-        apb.write(
-          .delay(0), .id(0), .address(12'h020), .length(ARCH_SZ/BUS_DATA_WIDTH*8*3),
-          .size(0), .burst(0), .lock(0), .prot(0), .data(bus_data_bytes)
-        );
+//        apb.write(
+//          .delay(0), .id(0), .address(12'h200), .length(ARCH_SZ/BUS_DATA_WIDTH*8*3),
+//          .size(0), .burst(0), .lock(0), .prot(0), .data(bus_data_bytes)
+//        );
         regdata = {19'h0, 5'h4, 1'b0, 1'b0, 1'b0, 1'b0, test_set.hmac, 3'b010};
         bus_data_bytes.delete();
         for (int k = 0; k < 32/8; k++) begin
@@ -110,6 +110,10 @@ class environment #(parameter BUS_DATA_WIDTH = 32, parameter ARCH_SZ = `WORD_SIZ
              bus_data_bytes.push_back('0);
            end
          end
+        apb.write(
+          .delay(0), .id(0), .address(12'h020), .length(1),
+          .size(0), .burst(0), .lock(0), .prot(0), .data(bus_data_bytes)
+        );
         apb.write(
           .delay(0), .id(0), .address(12'h010), .length(1),
           .size(0), .burst(0), .lock(0), .prot(0), .data(bus_data_bytes)

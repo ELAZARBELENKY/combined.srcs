@@ -150,13 +150,15 @@ logic key_valid_i = 1;
 logic key_ready_o;
 logic [31:0] key;
 logic [3:0] ctr = 0;
-always_ff @(posedge pclk) begin
-  if (start) ctr <= 0;
-  else if (key_ready_o&&key_valid_i) begin
-    key <= aux_key_i[ctr*31-:32];
-    ctr <= ctr + 1;
+
+  always_ff @(posedge pclk) begin
+    if (start) ctr <= 0;
+    else if (key_ready_o&&key_valid_i) begin
+      key <= aux_key_i[ctr*31-:32];
+      ctr <= ctr + 1;
+    end
   end
-end
+
 lw_hmac u_lw_hmac_core (
    .clk_i(pclk),
    .aresetn_i(core_reset),

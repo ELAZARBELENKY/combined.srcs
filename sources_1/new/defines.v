@@ -9,7 +9,7 @@
  *
  */
 
-`define CORE_ARCH_S64
+`define CORE_ARCH_S32
 `define FIQLIB__ASYNC_RST
 
 `ifdef CORE_ARCH_S32

@@ -573,13 +573,13 @@ module interface_control_logic #(
       end else begin
         if (start_o & ready_i & valid_o) begin
           start_o <= 1'b0;
-        end else if (core_ready_i & ctl.init) begin// & ~empty
+        end else if (core_ready_i & ctl.init & ~empty) begin
           start_o <= 1'b1;
           data_cnt <= '0;
         end
         if (ready_i & valid_o & empty_comb) begin
           valid_o <= 1'b0;
-        end else if ((~empty & ~core_ready_i) | (core_ready_i & ctl.init & ~empty)) begin
+        end else if ((~empty & ~core_ready_i) | (core_ready_i)) begin// & ~empty & ctl.init
           valid_o <= 1'b1;
         end
         if (ready_i & valid_o) begin
