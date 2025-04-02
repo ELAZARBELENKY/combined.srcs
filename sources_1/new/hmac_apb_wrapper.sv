@@ -81,7 +81,7 @@ module hmac_apb_wrapper #(
 
     logic start_pending;
     // Instantiate APB Slave Adapter
-    apb_slave_adapter #(
+    APB_slave_adapter #(
         .D_WIDTH(D_WIDTH),
         .A_WIDTH(A_WIDTH)
     ) apb_adapter (

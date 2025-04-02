@@ -1,0 +1,834 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="apb_top_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="apb_top_tb" />
+            <top_module name="glbl" />
+            <top_module name="lw_sha_pkg" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="5305000001fs"></ZoomEndTime>
+      <Cursor1Time time="5305000000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="267"></NameColumnWidth>
+      <ValueColumnWidth column_width="155"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="4" />
+   <wvobject fp_name="group225" type="group">
+      <obj_property name="label">I/O</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/apb_top_tb/pclk" type="logic">
+         <obj_property name="ElementShortName">pclk</obj_property>
+         <obj_property name="ObjectShortName">pclk</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/presetn" type="logic">
+         <obj_property name="ElementShortName">presetn</obj_property>
+         <obj_property name="ObjectShortName">presetn</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/psel" type="logic">
+         <obj_property name="ElementShortName">psel</obj_property>
+         <obj_property name="ObjectShortName">psel</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/penable" type="logic">
+         <obj_property name="ElementShortName">penable</obj_property>
+         <obj_property name="ObjectShortName">penable</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/pwrite" type="logic">
+         <obj_property name="ElementShortName">pwrite</obj_property>
+         <obj_property name="ObjectShortName">pwrite</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/paddr" type="array">
+         <obj_property name="ElementShortName">paddr[11:0]</obj_property>
+         <obj_property name="ObjectShortName">paddr[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/pwdata" type="array">
+         <obj_property name="ElementShortName">pwdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">pwdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/pready" type="logic">
+         <obj_property name="ElementShortName">pready</obj_property>
+         <obj_property name="ObjectShortName">pready</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/prdata" type="array">
+         <obj_property name="ElementShortName">prdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">prdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/pslverr" type="logic">
+         <obj_property name="ElementShortName">pslverr</obj_property>
+         <obj_property name="ObjectShortName">pslverr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/irq_o" type="logic">
+         <obj_property name="ElementShortName">irq_o</obj_property>
+         <obj_property name="ObjectShortName">irq_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/aux_key_i" type="array">
+         <obj_property name="ElementShortName">aux_key_i[255:0]</obj_property>
+         <obj_property name="ObjectShortName">aux_key_i[255:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/random_i" type="array">
+         <obj_property name="ElementShortName">random_i[1:0]</obj_property>
+         <obj_property name="ObjectShortName">random_i[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dma_wr_req_o" type="logic">
+         <obj_property name="ElementShortName">dma_wr_req_o</obj_property>
+         <obj_property name="ObjectShortName">dma_wr_req_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dma_rd_req_o" type="logic">
+         <obj_property name="ElementShortName">dma_rd_req_o</obj_property>
+         <obj_property name="ObjectShortName">dma_rd_req_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/hash_result" type="array">
+         <obj_property name="ElementShortName">hash_result[7:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">hash_result[7:0][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/FIQSHA_BUS_DATA_WIDTH" type="array">
+         <obj_property name="ElementShortName">FIQSHA_BUS_DATA_WIDTH[31:0]</obj_property>
+         <obj_property name="ObjectShortName">FIQSHA_BUS_DATA_WIDTH[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/ADDR_WIDTH" type="array">
+         <obj_property name="ElementShortName">ADDR_WIDTH[31:0]</obj_property>
+         <obj_property name="ObjectShortName">ADDR_WIDTH[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/HASH_WIDTH" type="array">
+         <obj_property name="ElementShortName">HASH_WIDTH[31:0]</obj_property>
+         <obj_property name="ObjectShortName">HASH_WIDTH[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/CLK_PERIOD" type="array">
+         <obj_property name="ElementShortName">CLK_PERIOD[31:0]</obj_property>
+         <obj_property name="ObjectShortName">CLK_PERIOD[31:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group250" type="group">
+      <obj_property name="label">APB_adapt</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/pclk" type="logic">
+         <obj_property name="ElementShortName">pclk</obj_property>
+         <obj_property name="ObjectShortName">pclk</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/presetn" type="logic">
+         <obj_property name="ElementShortName">presetn</obj_property>
+         <obj_property name="ObjectShortName">presetn</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/paddr" type="array">
+         <obj_property name="ElementShortName">paddr[11:0]</obj_property>
+         <obj_property name="ObjectShortName">paddr[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/psel" type="logic">
+         <obj_property name="ElementShortName">psel</obj_property>
+         <obj_property name="ObjectShortName">psel</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/penable" type="logic">
+         <obj_property name="ElementShortName">penable</obj_property>
+         <obj_property name="ObjectShortName">penable</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/pwrite" type="logic">
+         <obj_property name="ElementShortName">pwrite</obj_property>
+         <obj_property name="ObjectShortName">pwrite</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/pwdata" type="array">
+         <obj_property name="ElementShortName">pwdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">pwdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/pstrb" type="array">
+         <obj_property name="ElementShortName">pstrb[3:0]</obj_property>
+         <obj_property name="ObjectShortName">pstrb[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/pready" type="logic">
+         <obj_property name="ElementShortName">pready</obj_property>
+         <obj_property name="ObjectShortName">pready</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/prdata" type="array">
+         <obj_property name="ElementShortName">prdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">prdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/pslverr" type="logic">
+         <obj_property name="ElementShortName">pslverr</obj_property>
+         <obj_property name="ObjectShortName">pslverr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_wr" type="logic">
+         <obj_property name="ElementShortName">con_wr</obj_property>
+         <obj_property name="ObjectShortName">con_wr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_wr_ack" type="logic">
+         <obj_property name="ElementShortName">con_wr_ack</obj_property>
+         <obj_property name="ObjectShortName">con_wr_ack</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_rd" type="logic">
+         <obj_property name="ElementShortName">con_rd</obj_property>
+         <obj_property name="ObjectShortName">con_rd</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_rd_ack" type="logic">
+         <obj_property name="ElementShortName">con_rd_ack</obj_property>
+         <obj_property name="ObjectShortName">con_rd_ack</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_waddr" type="array">
+         <obj_property name="ElementShortName">con_waddr[11:0]</obj_property>
+         <obj_property name="ObjectShortName">con_waddr[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_raddr" type="array">
+         <obj_property name="ElementShortName">con_raddr[11:0]</obj_property>
+         <obj_property name="ObjectShortName">con_raddr[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_wdata" type="array">
+         <obj_property name="ElementShortName">con_wdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">con_wdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_wbyte_enable" type="array">
+         <obj_property name="ElementShortName">con_wbyte_enable[3:0]</obj_property>
+         <obj_property name="ObjectShortName">con_wbyte_enable[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_rbyte_enable" type="array">
+         <obj_property name="ElementShortName">con_rbyte_enable[3:0]</obj_property>
+         <obj_property name="ObjectShortName">con_rbyte_enable[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_rdata" type="array">
+         <obj_property name="ElementShortName">con_rdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">con_rdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_read_valid" type="logic">
+         <obj_property name="ElementShortName">con_read_valid</obj_property>
+         <obj_property name="ObjectShortName">con_read_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/con_slv_error" type="logic">
+         <obj_property name="ElementShortName">con_slv_error</obj_property>
+         <obj_property name="ObjectShortName">con_slv_error</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_apb_slv/D_WIDTH" type="array">
+         <obj_property name="ElementShortName">D_WIDTH[7:0]</obj_property>
+         <obj_property name="ObjectShortName">D_WIDTH[7:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group370" type="group">
+      <obj_property name="label">ICL</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/clk_i" type="logic">
+         <obj_property name="ElementShortName">clk_i</obj_property>
+         <obj_property name="ObjectShortName">clk_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/resetn_i" type="logic">
+         <obj_property name="ElementShortName">resetn_i</obj_property>
+         <obj_property name="ObjectShortName">resetn_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/wr_i" type="logic">
+         <obj_property name="ElementShortName">wr_i</obj_property>
+         <obj_property name="ObjectShortName">wr_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/wr_ack_o" type="logic">
+         <obj_property name="ElementShortName">wr_ack_o</obj_property>
+         <obj_property name="ObjectShortName">wr_ack_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rd_i" type="logic">
+         <obj_property name="ElementShortName">rd_i</obj_property>
+         <obj_property name="ObjectShortName">rd_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rd_ack_i" type="logic">
+         <obj_property name="ElementShortName">rd_ack_i</obj_property>
+         <obj_property name="ObjectShortName">rd_ack_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/waddr_i" type="array">
+         <obj_property name="ElementShortName">waddr_i[11:0]</obj_property>
+         <obj_property name="ObjectShortName">waddr_i[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/wtransaction_cnt_i" type="array">
+         <obj_property name="ElementShortName">wtransaction_cnt_i[11:0]</obj_property>
+         <obj_property name="ObjectShortName">wtransaction_cnt_i[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/raddr_i" type="array">
+         <obj_property name="ElementShortName">raddr_i[11:0]</obj_property>
+         <obj_property name="ObjectShortName">raddr_i[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rtransaction_cnt_i" type="array">
+         <obj_property name="ElementShortName">rtransaction_cnt_i[11:0]</obj_property>
+         <obj_property name="ObjectShortName">rtransaction_cnt_i[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/wdata_i" type="array">
+         <obj_property name="ElementShortName">wdata_i[31:0]</obj_property>
+         <obj_property name="ObjectShortName">wdata_i[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/wbyte_enable_i" type="array">
+         <obj_property name="ElementShortName">wbyte_enable_i[3:0]</obj_property>
+         <obj_property name="ObjectShortName">wbyte_enable_i[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rbyte_enable_i" type="array">
+         <obj_property name="ElementShortName">rbyte_enable_i[3:0]</obj_property>
+         <obj_property name="ObjectShortName">rbyte_enable_i[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rdata_o" type="array">
+         <obj_property name="ElementShortName">rdata_o[31:0]</obj_property>
+         <obj_property name="ObjectShortName">rdata_o[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/read_valid_o" type="logic">
+         <obj_property name="ElementShortName">read_valid_o</obj_property>
+         <obj_property name="ObjectShortName">read_valid_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/read_ready_i" type="logic">
+         <obj_property name="ElementShortName">read_ready_i</obj_property>
+         <obj_property name="ObjectShortName">read_ready_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/aux_key_i" type="array">
+         <obj_property name="ElementShortName">aux_key_i[255:0]</obj_property>
+         <obj_property name="ObjectShortName">aux_key_i[255:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/wstuck_i" type="logic">
+         <obj_property name="ElementShortName">wstuck_i</obj_property>
+         <obj_property name="ObjectShortName">wstuck_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rstuck_i" type="logic">
+         <obj_property name="ElementShortName">rstuck_i</obj_property>
+         <obj_property name="ObjectShortName">rstuck_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/burst_type_i" type="array">
+         <obj_property name="ElementShortName">burst_type_i[1:0]</obj_property>
+         <obj_property name="ObjectShortName">burst_type_i[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/new_write_transaction_i" type="logic">
+         <obj_property name="ElementShortName">new_write_transaction_i</obj_property>
+         <obj_property name="ObjectShortName">new_write_transaction_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/wtransaction_active_i" type="logic">
+         <obj_property name="ElementShortName">wtransaction_active_i</obj_property>
+         <obj_property name="ObjectShortName">wtransaction_active_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/new_read_transaction_i" type="logic">
+         <obj_property name="ElementShortName">new_read_transaction_i</obj_property>
+         <obj_property name="ObjectShortName">new_read_transaction_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rtransaction_active_i" type="logic">
+         <obj_property name="ElementShortName">rtransaction_active_i</obj_property>
+         <obj_property name="ObjectShortName">rtransaction_active_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/irq_o" type="logic">
+         <obj_property name="ElementShortName">irq_o</obj_property>
+         <obj_property name="ObjectShortName">irq_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/start_o" type="logic">
+         <obj_property name="ElementShortName">start_o</obj_property>
+         <obj_property name="ObjectShortName">start_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/abort_o" type="logic">
+         <obj_property name="ElementShortName">abort_o</obj_property>
+         <obj_property name="ObjectShortName">abort_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/last_o" type="logic">
+         <obj_property name="ElementShortName">last_o</obj_property>
+         <obj_property name="ObjectShortName">last_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/opcode_o" type="array">
+         <obj_property name="ElementShortName">opcode_o[3:0]</obj_property>
+         <obj_property name="ObjectShortName">opcode_o[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/data_o" type="array">
+         <obj_property name="ElementShortName">data_o[31:0]</obj_property>
+         <obj_property name="ObjectShortName">data_o[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/hash_i" type="array">
+         <obj_property name="ElementShortName">hash_i[7:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">hash_i[7:0][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/valid_o" type="logic">
+         <obj_property name="ElementShortName">valid_o</obj_property>
+         <obj_property name="ObjectShortName">valid_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/ready_i" type="logic">
+         <obj_property name="ElementShortName">ready_i</obj_property>
+         <obj_property name="ObjectShortName">ready_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/core_ready_i" type="logic">
+         <obj_property name="ElementShortName">core_ready_i</obj_property>
+         <obj_property name="ObjectShortName">core_ready_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/done_i" type="logic">
+         <obj_property name="ElementShortName">done_i</obj_property>
+         <obj_property name="ObjectShortName">done_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fault_inj_det_i" type="logic">
+         <obj_property name="ElementShortName">fault_inj_det_i</obj_property>
+         <obj_property name="ObjectShortName">fault_inj_det_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/dma_wr_req_o" type="logic">
+         <obj_property name="ElementShortName">dma_wr_req_o</obj_property>
+         <obj_property name="ObjectShortName">dma_wr_req_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/dma_rd_req_o" type="logic">
+         <obj_property name="ElementShortName">dma_rd_req_o</obj_property>
+         <obj_property name="ObjectShortName">dma_rd_req_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/slv_error_o" type="logic">
+         <obj_property name="ElementShortName">slv_error_o</obj_property>
+         <obj_property name="ObjectShortName">slv_error_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/core_reset_o" type="logic">
+         <obj_property name="ElementShortName">core_reset_o</obj_property>
+         <obj_property name="ObjectShortName">core_reset_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/id_reg" type="array">
+         <obj_property name="ElementShortName">id_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">id_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/cfg_reg" type="array">
+         <obj_property name="ElementShortName">cfg_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">cfg_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/ctl_reg" type="array">
+         <obj_property name="ElementShortName">ctl_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">ctl_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/sts_reg" type="array">
+         <obj_property name="ElementShortName">sts_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">sts_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/ie_reg" type="array">
+         <obj_property name="ElementShortName">ie_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">ie_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/seed_reg" type="array">
+         <obj_property name="ElementShortName">seed_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">seed_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/hash_reg" type="array">
+         <obj_property name="ElementShortName">hash_reg[255:0]</obj_property>
+         <obj_property name="ObjectShortName">hash_reg[255:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo_fixed_transaction" type="logic">
+         <obj_property name="ElementShortName">fifo_fixed_transaction</obj_property>
+         <obj_property name="ObjectShortName">fifo_fixed_transaction</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/block_fixed_wtransaction_incr" type="logic">
+         <obj_property name="ElementShortName">block_fixed_wtransaction_incr</obj_property>
+         <obj_property name="ObjectShortName">block_fixed_wtransaction_incr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/block_fixed_rtransaction_incr" type="logic">
+         <obj_property name="ElementShortName">block_fixed_rtransaction_incr</obj_property>
+         <obj_property name="ObjectShortName">block_fixed_rtransaction_incr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/wr_less_than_bus_width" type="logic">
+         <obj_property name="ElementShortName">wr_less_than_bus_width</obj_property>
+         <obj_property name="ObjectShortName">wr_less_than_bus_width</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rd_less_than_bus_width" type="logic">
+         <obj_property name="ElementShortName">rd_less_than_bus_width</obj_property>
+         <obj_property name="ObjectShortName">rd_less_than_bus_width</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/init_ack" type="logic">
+         <obj_property name="ElementShortName">init_ack</obj_property>
+         <obj_property name="ObjectShortName">init_ack</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/last_ack" type="logic">
+         <obj_property name="ElementShortName">last_ack</obj_property>
+         <obj_property name="ObjectShortName">last_ack</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/abort_ack" type="logic">
+         <obj_property name="ElementShortName">abort_ack</obj_property>
+         <obj_property name="ObjectShortName">abort_ack</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/avl_clr" type="logic">
+         <obj_property name="ElementShortName">avl_clr</obj_property>
+         <obj_property name="ObjectShortName">avl_clr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rdy_clr" type="logic">
+         <obj_property name="ElementShortName">rdy_clr</obj_property>
+         <obj_property name="ObjectShortName">rdy_clr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/derr_clr" type="logic">
+         <obj_property name="ElementShortName">derr_clr</obj_property>
+         <obj_property name="ObjectShortName">derr_clr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/busy_clr" type="logic">
+         <obj_property name="ElementShortName">busy_clr</obj_property>
+         <obj_property name="ObjectShortName">busy_clr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/faultinjdet_clr" type="logic">
+         <obj_property name="ElementShortName">faultinjdet_clr</obj_property>
+         <obj_property name="ObjectShortName">faultinjdet_clr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/keyunlocked_clr" type="logic">
+         <obj_property name="ElementShortName">keyunlocked_clr</obj_property>
+         <obj_property name="ObjectShortName">keyunlocked_clr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/avl_set" type="logic">
+         <obj_property name="ElementShortName">avl_set</obj_property>
+         <obj_property name="ObjectShortName">avl_set</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/rdy_set" type="logic">
+         <obj_property name="ElementShortName">rdy_set</obj_property>
+         <obj_property name="ObjectShortName">rdy_set</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/derr_set" type="logic">
+         <obj_property name="ElementShortName">derr_set</obj_property>
+         <obj_property name="ObjectShortName">derr_set</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/busy_set" type="logic">
+         <obj_property name="ElementShortName">busy_set</obj_property>
+         <obj_property name="ObjectShortName">busy_set</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/faultinjdet_set" type="logic">
+         <obj_property name="ElementShortName">faultinjdet_set</obj_property>
+         <obj_property name="ObjectShortName">faultinjdet_set</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/keyunlocked_set" type="logic">
+         <obj_property name="ElementShortName">keyunlocked_set</obj_property>
+         <obj_property name="ObjectShortName">keyunlocked_set</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo" type="array">
+         <obj_property name="ElementShortName">fifo[0:3][0:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">fifo[0:3][0:0][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo_wr_ptr" type="array">
+         <obj_property name="ElementShortName">fifo_wr_ptr[2:0]</obj_property>
+         <obj_property name="ObjectShortName">fifo_wr_ptr[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo_wr_ptr_comb" type="array">
+         <obj_property name="ElementShortName">fifo_wr_ptr_comb[2:0]</obj_property>
+         <obj_property name="ObjectShortName">fifo_wr_ptr_comb[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo_rd" type="logic">
+         <obj_property name="ElementShortName">fifo_rd</obj_property>
+         <obj_property name="ObjectShortName">fifo_rd</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo_rd_ptr" type="array">
+         <obj_property name="ElementShortName">fifo_rd_ptr[2:0]</obj_property>
+         <obj_property name="ObjectShortName">fifo_rd_ptr[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo_rd_ptr_comb" type="array">
+         <obj_property name="ElementShortName">fifo_rd_ptr_comb[2:0]</obj_property>
+         <obj_property name="ObjectShortName">fifo_rd_ptr_comb[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo_deposit" type="array">
+         <obj_property name="ElementShortName">fifo_deposit[2:0]</obj_property>
+         <obj_property name="ObjectShortName">fifo_deposit[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo_deposit_comb" type="array">
+         <obj_property name="ElementShortName">fifo_deposit_comb[2:0]</obj_property>
+         <obj_property name="ObjectShortName">fifo_deposit_comb[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/empty" type="logic">
+         <obj_property name="ElementShortName">empty</obj_property>
+         <obj_property name="ObjectShortName">empty</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/overflow" type="logic">
+         <obj_property name="ElementShortName">overflow</obj_property>
+         <obj_property name="ObjectShortName">overflow</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/upborder" type="logic">
+         <obj_property name="ElementShortName">upborder</obj_property>
+         <obj_property name="ObjectShortName">upborder</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/empty_comb" type="logic">
+         <obj_property name="ElementShortName">empty_comb</obj_property>
+         <obj_property name="ObjectShortName">empty_comb</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/overflow_comb" type="logic">
+         <obj_property name="ElementShortName">overflow_comb</obj_property>
+         <obj_property name="ObjectShortName">overflow_comb</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/upborder_comb" type="logic">
+         <obj_property name="ElementShortName">upborder_comb</obj_property>
+         <obj_property name="ObjectShortName">upborder_comb</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/use_extended_waddr" type="logic">
+         <obj_property name="ElementShortName">use_extended_waddr</obj_property>
+         <obj_property name="ObjectShortName">use_extended_waddr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/use_extended_raddr" type="logic">
+         <obj_property name="ElementShortName">use_extended_raddr</obj_property>
+         <obj_property name="ObjectShortName">use_extended_raddr</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/waddr_actual" type="array">
+         <obj_property name="ElementShortName">waddr_actual[11:0]</obj_property>
+         <obj_property name="ObjectShortName">waddr_actual[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/raddr_actual" type="array">
+         <obj_property name="ElementShortName">raddr_actual[11:0]</obj_property>
+         <obj_property name="ObjectShortName">raddr_actual[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/fifo_waccess" type="logic">
+         <obj_property name="ElementShortName">fifo_waccess</obj_property>
+         <obj_property name="ObjectShortName">fifo_waccess</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/incrval" type="array">
+         <obj_property name="ElementShortName">incrval[1:0]</obj_property>
+         <obj_property name="ObjectShortName">incrval[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/core_reset_delay" type="logic">
+         <obj_property name="ElementShortName">core_reset_delay</obj_property>
+         <obj_property name="ObjectShortName">core_reset_delay</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/id" type="array">
+         <obj_property name="ElementShortName">id</obj_property>
+         <obj_property name="ObjectShortName">id</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/cfg" type="array">
+         <obj_property name="ElementShortName">cfg</obj_property>
+         <obj_property name="ObjectShortName">cfg</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/ctl" type="array">
+         <obj_property name="ElementShortName">ctl</obj_property>
+         <obj_property name="ObjectShortName">ctl</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/sts" type="array">
+         <obj_property name="ElementShortName">sts</obj_property>
+         <obj_property name="ObjectShortName">sts</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/ie" type="array">
+         <obj_property name="ElementShortName">ie</obj_property>
+         <obj_property name="ObjectShortName">ie</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/hash" type="array">
+         <obj_property name="ElementShortName">hash</obj_property>
+         <obj_property name="ObjectShortName">hash</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/state" type="array">
+         <obj_property name="ElementShortName">state</obj_property>
+         <obj_property name="ObjectShortName">state</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/seed" type="array">
+         <obj_property name="ElementShortName">seed</obj_property>
+         <obj_property name="ObjectShortName">seed</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/data_cnt" type="array">
+         <obj_property name="ElementShortName">data_cnt[3:0]</obj_property>
+         <obj_property name="ObjectShortName">data_cnt[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/hash_reg_word_rptr" type="array">
+         <obj_property name="ElementShortName">hash_reg_word_rptr[2:0]</obj_property>
+         <obj_property name="ObjectShortName">hash_reg_word_rptr[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/FIQSHA_BUS_DATA_WIDTH" type="array">
+         <obj_property name="ElementShortName">FIQSHA_BUS_DATA_WIDTH[31:0]</obj_property>
+         <obj_property name="ObjectShortName">FIQSHA_BUS_DATA_WIDTH[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/FIQSHA_FIFO_SIZE" type="array">
+         <obj_property name="ElementShortName">FIQSHA_FIFO_SIZE[31:0]</obj_property>
+         <obj_property name="ObjectShortName">FIQSHA_FIFO_SIZE[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/BYTE_MAP_SZ" type="array">
+         <obj_property name="ElementShortName">BYTE_MAP_SZ[31:0]</obj_property>
+         <obj_property name="ObjectShortName">BYTE_MAP_SZ[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/ARCH_SZ" type="array">
+         <obj_property name="ElementShortName">ARCH_SZ[31:0]</obj_property>
+         <obj_property name="ObjectShortName">ARCH_SZ[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/INCLUDE_PRNG" type="logic">
+         <obj_property name="ElementShortName">INCLUDE_PRNG</obj_property>
+         <obj_property name="ObjectShortName">INCLUDE_PRNG</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/BURST_EN" type="logic">
+         <obj_property name="ElementShortName">BURST_EN</obj_property>
+         <obj_property name="ObjectShortName">BURST_EN</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/BYTE_ACCESS_EN" type="logic">
+         <obj_property name="ElementShortName">BYTE_ACCESS_EN</obj_property>
+         <obj_property name="ObjectShortName">BYTE_ACCESS_EN</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/ID_VAL" type="array">
+         <obj_property name="ElementShortName">ID_VAL[31:0]</obj_property>
+         <obj_property name="ObjectShortName">ID_VAL[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/BUS_DATA_IN_ARCH_SZ" type="array">
+         <obj_property name="ElementShortName">BUS_DATA_IN_ARCH_SZ[7:0]</obj_property>
+         <obj_property name="ObjectShortName">BUS_DATA_IN_ARCH_SZ[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/FIFO_DATA_WIDTH" type="array">
+         <obj_property name="ElementShortName">FIFO_DATA_WIDTH[31:0]</obj_property>
+         <obj_property name="ObjectShortName">FIFO_DATA_WIDTH[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/FIFO_WADDR_SZ" type="array">
+         <obj_property name="ElementShortName">FIFO_WADDR_SZ[15:0]</obj_property>
+         <obj_property name="ObjectShortName">FIFO_WADDR_SZ[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/ID_ADDR" type="array">
+         <obj_property name="ElementShortName">ID_ADDR[11:0]</obj_property>
+         <obj_property name="ObjectShortName">ID_ADDR[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/CFG_ADDR" type="array">
+         <obj_property name="ElementShortName">CFG_ADDR[11:0]</obj_property>
+         <obj_property name="ObjectShortName">CFG_ADDR[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/CTL_ADDR" type="array">
+         <obj_property name="ElementShortName">CTL_ADDR[11:0]</obj_property>
+         <obj_property name="ObjectShortName">CTL_ADDR[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/STS_ADDR" type="array">
+         <obj_property name="ElementShortName">STS_ADDR[11:0]</obj_property>
+         <obj_property name="ObjectShortName">STS_ADDR[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/IE_ADDR" type="array">
+         <obj_property name="ElementShortName">IE_ADDR[11:0]</obj_property>
+         <obj_property name="ObjectShortName">IE_ADDR[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/SEED_ADDR" type="array">
+         <obj_property name="ElementShortName">SEED_ADDR[11:0]</obj_property>
+         <obj_property name="ObjectShortName">SEED_ADDR[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/DIN_START_ADDR" type="array">
+         <obj_property name="ElementShortName">DIN_START_ADDR[11:0]</obj_property>
+         <obj_property name="ObjectShortName">DIN_START_ADDR[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/DIN_SIZE" type="array">
+         <obj_property name="ElementShortName">DIN_SIZE[31:0]</obj_property>
+         <obj_property name="ObjectShortName">DIN_SIZE[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/HASH_ADDR" type="array">
+         <obj_property name="ElementShortName">HASH_ADDR[11:0]</obj_property>
+         <obj_property name="ObjectShortName">HASH_ADDR[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_if_core/HASH_SIZE" type="array">
+         <obj_property name="ElementShortName">HASH_SIZE[31:0]</obj_property>
+         <obj_property name="ObjectShortName">HASH_SIZE[31:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group406" type="group">
+      <obj_property name="label">HMAC</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/clk_i" type="logic">
+         <obj_property name="ElementShortName">clk_i</obj_property>
+         <obj_property name="ObjectShortName">clk_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/aresetn_i" type="logic">
+         <obj_property name="ElementShortName">aresetn_i</obj_property>
+         <obj_property name="ObjectShortName">aresetn_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/start_i" type="logic">
+         <obj_property name="ElementShortName">start_i</obj_property>
+         <obj_property name="ObjectShortName">start_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/abort_i" type="logic">
+         <obj_property name="ElementShortName">abort_i</obj_property>
+         <obj_property name="ObjectShortName">abort_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/last_i" type="logic">
+         <obj_property name="ElementShortName">last_i</obj_property>
+         <obj_property name="ObjectShortName">last_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/data_valid_i" type="logic">
+         <obj_property name="ElementShortName">data_valid_i</obj_property>
+         <obj_property name="ObjectShortName">data_valid_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/data_i" type="array">
+         <obj_property name="ElementShortName">data_i[31:0]</obj_property>
+         <obj_property name="ObjectShortName">data_i[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/random_i" type="array">
+         <obj_property name="ElementShortName">random_i[1:0]</obj_property>
+         <obj_property name="ObjectShortName">random_i[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/opcode_i" type="array">
+         <obj_property name="ElementShortName">opcode_i[1:0]</obj_property>
+         <obj_property name="ObjectShortName">opcode_i[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/key_i" type="array">
+         <obj_property name="ElementShortName">key_i[31:0]</obj_property>
+         <obj_property name="ObjectShortName">key_i[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/key_valid_i" type="logic">
+         <obj_property name="ElementShortName">key_valid_i</obj_property>
+         <obj_property name="ObjectShortName">key_valid_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/key_ready_o" type="logic">
+         <obj_property name="ElementShortName">key_ready_o</obj_property>
+         <obj_property name="ObjectShortName">key_ready_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/hash_o" type="array">
+         <obj_property name="ElementShortName">hash_o[7:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">hash_o[7:0][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/ready_o" type="logic">
+         <obj_property name="ElementShortName">ready_o</obj_property>
+         <obj_property name="ObjectShortName">ready_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/core_ready_o" type="logic">
+         <obj_property name="ElementShortName">core_ready_o</obj_property>
+         <obj_property name="ObjectShortName">core_ready_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/done_o" type="logic">
+         <obj_property name="ElementShortName">done_o</obj_property>
+         <obj_property name="ObjectShortName">done_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/fault_inj_det_o" type="logic">
+         <obj_property name="ElementShortName">fault_inj_det_o</obj_property>
+         <obj_property name="ObjectShortName">fault_inj_det_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/counter" type="array">
+         <obj_property name="ElementShortName">counter[3:0]</obj_property>
+         <obj_property name="ObjectShortName">counter[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/mode" type="logic">
+         <obj_property name="ElementShortName">mode</obj_property>
+         <obj_property name="ObjectShortName">mode</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/key_reg" type="array">
+         <obj_property name="ElementShortName">key_reg[15:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">key_reg[15:0][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/sha_output" type="array">
+         <obj_property name="ElementShortName">sha_output[7:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">sha_output[7:0][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/inner_hashed" type="array">
+         <obj_property name="ElementShortName">inner_hashed[7:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">inner_hashed[7:0][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/done_hash" type="logic">
+         <obj_property name="ElementShortName">done_hash</obj_property>
+         <obj_property name="ObjectShortName">done_hash</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/hmac" type="logic">
+         <obj_property name="ElementShortName">hmac</obj_property>
+         <obj_property name="ObjectShortName">hmac</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/inner_hash" type="logic">
+         <obj_property name="ElementShortName">inner_hash</obj_property>
+         <obj_property name="ObjectShortName">inner_hash</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/fb" type="logic">
+         <obj_property name="ElementShortName">fb</obj_property>
+         <obj_property name="ObjectShortName">fb</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/hash_ready" type="logic">
+         <obj_property name="ElementShortName">hash_ready</obj_property>
+         <obj_property name="ObjectShortName">hash_ready</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/ns" type="array">
+         <obj_property name="ElementShortName">ns[1:0]</obj_property>
+         <obj_property name="ObjectShortName">ns[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/ps" type="array">
+         <obj_property name="ElementShortName">ps[1:0]</obj_property>
+         <obj_property name="ObjectShortName">ps[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/hmac_last" type="logic">
+         <obj_property name="ElementShortName">hmac_last</obj_property>
+         <obj_property name="ObjectShortName">hmac_last</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/hmac_data_valid" type="logic">
+         <obj_property name="ElementShortName">hmac_data_valid</obj_property>
+         <obj_property name="ObjectShortName">hmac_data_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/hmac_start" type="logic">
+         <obj_property name="ElementShortName">hmac_start</obj_property>
+         <obj_property name="ObjectShortName">hmac_start</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/hmac_data" type="array">
+         <obj_property name="ElementShortName">hmac_data[31:0]</obj_property>
+         <obj_property name="ObjectShortName">hmac_data[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/hashing/w" type="array">
+         <obj_property name="ElementShortName">w[15:0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">w[15:0][31:0]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject fp_name="/apb_top_tb/dut/u_lw_hmac_core/hashing/state" type="array">
+         <obj_property name="ElementShortName">state[7:0][32:0]</obj_property>
+         <obj_property name="ObjectShortName">state[7:0][32:0]</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

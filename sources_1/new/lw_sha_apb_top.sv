@@ -7,7 +7,7 @@
 //*  Dissemination of this information or reproduction of this material, in any medium,
 //*  is strictly forbidden unless prior written permission is obtained from FortifyIQ, Inc.
 //*
-
+`include "defines.v"
 module lw_sha_apb_top (
 	 pclk,
 	 presetn,
