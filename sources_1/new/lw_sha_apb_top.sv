@@ -57,7 +57,7 @@ logic con_wr, con_wr_ack, con_rd, con_rd_ack, con_read_valid, con_slv_error;
 logic [11:0] con_waddr, con_raddr;
 logic [FIQSHA_BUS_DATA_WIDTH-1:0] con_wdata, con_rdata;
 
-APB_slave_adapter
+ sha2_apb_slave_adapter
 // #(
 //    .D_WIDTH(FIQSHA_BUS_DATA_WIDTH)
 //)
@@ -95,14 +95,14 @@ logic [DATA_WIDTH-1:0] data;
 logic [DATA_WIDTH-1:0] hash[7:0];
 logic core_reset;
 
-interface_control_logic #(
+lw_sha_interface_control_logic #(
    .FIQSHA_BUS_DATA_WIDTH(FIQSHA_BUS_DATA_WIDTH),
    .FIQSHA_FIFO_SIZE(FIQSHA_FIFO_SIZE),
-   .BYTE_MAP_SZ(2048),
+//   .BYTE_MAP_SZ(2048),
    .ARCH_SZ(DATA_WIDTH),
-   .INCLUDE_PRNG(0),
-   .BURST_EN(0),
-   .BYTE_ACCESS_EN(0)
+   .INCLUDE_PRNG(0)
+//   .BURST_EN(0),
+//   .BYTE_ACCESS_EN(0)
 ) u_if_core (
    .clk_i(pclk),
    .resetn_i(presetn),
@@ -119,15 +119,15 @@ interface_control_logic #(
    .rbyte_enable_i('1),
    .rdata_o(con_rdata),
    .read_valid_o(con_read_valid),
-   .read_ready_i('1),
+//   .read_ready_i('1),
    .aux_key_i(aux_key_i),
-   .wstuck_i('0),
-   .rstuck_i('0),
+//   .wstuck_i('0),
+//   .rstuck_i('0),
    .burst_type_i('0),
-   .new_write_transaction_i('0),
-   .wtransaction_active_i('0),
-   .new_read_transaction_i('0),
-   .rtransaction_active_i('0),
+//   .new_write_transaction_i('0),
+//   .wtransaction_active_i('0),
+//   .new_read_transaction_i('0),
+//   .rtransaction_active_i('0),
    .irq_o(irq_o),
   // native interface
    .start_o(start),

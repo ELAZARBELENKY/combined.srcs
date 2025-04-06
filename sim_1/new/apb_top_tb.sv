@@ -1,12 +1,12 @@
 module apb_top_tb;
-
+`include "../../sources_1/new/defines.v"
   // Parameters
   parameter FIQSHA_BUS_DATA_WIDTH = 32;
   parameter ADDR_WIDTH = 12;
   parameter HASH_WIDTH = (FIQSHA_BUS_DATA_WIDTH == 32) ? 256 : 512;
 
   // Signals
-  reg pclk;
+  reg pclk = 0;
   reg presetn;
   reg psel;
   reg penable;
@@ -45,18 +45,14 @@ module apb_top_tb;
   );
 
   // Clock
-  parameter CLK_PERIOD = 10;
-  initial begin
-    pclk = 0;
-    forever #(CLK_PERIOD / 2) pclk = ~pclk;
-  end
+  initial forever #5 pclk = ~pclk;
 
   // Reset
   initial begin
     presetn = 0;
-    repeat(2) @(posedge pclk);
+    @(posedge pclk);
+    @(posedge pclk);
     presetn = 1;
-    repeat(5) @(posedge pclk); // Give time after reset
   end
 
   // APB Write Task (Cycle-Accurate)
@@ -64,106 +60,99 @@ module apb_top_tb;
     input [ADDR_WIDTH - 1:0] addr;
     input [FIQSHA_BUS_DATA_WIDTH - 1:0] wdata;
     begin
-      psel = 1;         // Select the slave
+      psel = 1;           // Select the slave
       paddr = addr;       // Set address
       pwdata = wdata;       // Set write data
       pwrite = 1;         // Write transaction
       penable = 0;        // Setup phase - penable LOW
       @(posedge pclk);     // End of Setup phase
+      if (addr == 'h140 && ~pready) wait (pready==1); // Wait for slave to be ready
 
       penable = 1;        // Enable phase - penable HIGH
       @(posedge pclk);     // Slave samples data
 
       penable = 0;        // End of Enable phase
       psel = 0;         // Deselect the slave
-      wait(pready == 1); // Wait for slave to be ready
-      @(posedge pclk);     // Wait for pready
+//      @(posedge pclk);     // Wait for pready
     end
   endtask
 
-  // APB Read Task (Cycle-Accurate)
-  task apb_read;
-    input [ADDR_WIDTH - 1:0] addr;
-    output reg [FIQSHA_BUS_DATA_WIDTH - 1:0] rdata;
-    begin
-      psel = 1;         // Select slave
-      paddr = addr;       // Set address
-      pwrite = 0;         // Read transaction
-      penable = 0;        // Setup phase
-      @(posedge pclk);     // End of Setup phase
+// APB Read Task (Cycle-Accurate)
+task apb_read;
+  input [ADDR_WIDTH - 1:0] addr;
+  output reg [FIQSHA_BUS_DATA_WIDTH - 1:0] rdata;
+  begin
+    wait(pready == 1);   // Wait for slave to be ready
+    psel = 1;            // Select slave
+    paddr = addr;        // Set address
+    pwrite = 0;          // Read transaction
+    penable = 0;         // Setup phase
+    @(posedge pclk);     // End of Setup phase
 
-      penable = 1;        // Enable phase
-      @(posedge pclk);     // Slave samples address
-      wait(pready == 1); // Wait for slave ready
-      @(posedge pclk);     // Data available
+    penable = 1;         // Enable phase
+    @(posedge pclk);     // Slave samples address and starts data transfer
+    
+    wait(pready == 1);   // Wait for slave ready (data available)
+    rdata = prdata;      // Capture read data
 
-      rdata = prdata;       // Read data
-      psel = 0;         // Deselect
-      penable = 0;
-    end
-  endtask
+    // Clear signals
+    psel = 0;            // Deselect slave
+    penable = 0;         // Disable transaction
+    paddr = '0;          // Clear address (optional, for safety)
+  end
+endtask
 
   // SHA-256 Test Case (Precise, with Padding)
   task automatic sha256_test;
+  
     //input [FIQSHA_BUS_DATA_WIDTH - 1:0] test_data;
     begin
       // Padded data for "abc" (512 bits = 64 bytes)
-      reg [511:0] padded_data = 512'h61626380000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000018;
-  
-      // 1. Reset the core
-      apb_write('h10, 32'h1);
-      repeat(10) @(posedge pclk);
-      apb_write('h10, 32'h0);
-      repeat(10) @(posedge pclk);
+//      localparam string input_str = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstuabcdefghigklmnopqrstuvwxyz";
+      localparam string input_str = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu";
+//      localparam string input_str = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
+//      localparam string input_str = "abc";
+      localparam length = input_str.len()*8;
+      localparam num = length >= `WORD_SIZE*14 ?
+        16<<($clog2(length+`WORD_SIZE*2+1)-($clog2(`WORD_SIZE)+4)):16;
+      reg [num*`WORD_SIZE-1:0] padded_data = 0;
+
+      logic [length-1:0] hex_value;
+      // Converting each character to its hexadecimal value
+      for (int i = 0; i < length; i++) begin
+          hex_value[(length-1 - i * 8) -: 8] = input_str[i];
+      end
+      padded_data[num*`WORD_SIZE-1-:length+1] = {hex_value,1'b1};
+      padded_data[11:0] = length;
+      $display("%h", padded_data);
+      $display("%d", num);
+//      // 1. Reset the core
+//      apb_write('h10, 32'h1);
+//      repeat(2) @(posedge pclk);
+//      apb_write('h10, 32'h0);
+//      repeat(2) @(posedge pclk);
   
       // 2. Configure for SHA-256
       apb_write('h10, 32'h0); // OPCODE = 0
-      apb_write('h10, 32'h0);
+//      apb_write('h10, 32'h0);
   
-      // 3. Send Data (Padded - 512 bits)
-      apb_write('h140, padded_data[31:0]);  // DIN0 (LSB)
-      wait(pready == 1);
-      apb_write('h144, padded_data[63:32]); // DIN1
-      wait(pready == 1);
-      apb_write('h148, padded_data[95:64]); // DIN2
-      wait(pready == 1);
-      apb_write('h14C, padded_data[127:96]); // DIN3
-      wait(pready == 1);
-      apb_write('h150, padded_data[159:128]); // DIN4
-      wait(pready == 1);
-      apb_write('h154, padded_data[191:160]); // DIN5
-      wait(pready == 1);
-      apb_write('h158, padded_data[223:192]); // DIN6
-      wait(pready == 1);
-      apb_write('h15C, padded_data[255:224]); // DIN7
-      wait(pready == 1);
-      apb_write('h160, padded_data[287:256]); // DIN8
-      wait(pready == 1);
-      apb_write('h164, padded_data[319:288]); // DIN9
-      wait(pready == 1);
-      apb_write('h168, padded_data[351:320]); // DIN10
-      wait(pready == 1);
-      apb_write('h16C, padded_data[383:352]); // DIN11
-      wait(pready == 1);
-      apb_write('h170, padded_data[415:384]); // DIN12
-      wait(pready == 1);
-      apb_write('h174, padded_data[447:416]); // DIN13
-      wait(pready == 1);
-      apb_write('h178, padded_data[479:448]); // DIN14
-      wait(pready == 1);
-      apb_write('h17C, padded_data[511:480]); // DIN15 (MSB)
-  
-      wait(pready == 1);
+//      wait(pready == 1);
       apb_write('h20, 32'h1);  // CTL.INIT = 1
-      apb_write('h20, 32'h0);
-  
-      wait(pready == 1);
-      apb_write('h20, 32'h1);  // CTL.LAST = 1
-      apb_write('h20, 32'h0);
-  
+//      apb_write('h20, 32'h0);
+      
+//      wait(pready == 1);
+//      apb_write('h20, 32'h1);  // CTL.LAST = 1
+//      apb_write('h20, 32'h0);
+      
+         // 3. Send Data (Padded - 512 bits)
+      for (int i = 0; i < num; i++) begin
+          apb_write('h140, padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
+          if (i == num/2) apb_write('h20, 32'h2);
+      end
+
       // 4. Wait for result (CRITICAL: Adjust!)
-      repeat(200) @(posedge pclk);
-  
+//      repeat(50) @(posedge pclk);
+ 
       // 5. Read the hash result
       for (int i = 0; i < HASH_WIDTH / FIQSHA_BUS_DATA_WIDTH; i++) begin
         apb_read('h100 + (i * (FIQSHA_BUS_DATA_WIDTH / 8)), hash_result[i]);
@@ -172,7 +161,7 @@ module apb_top_tb;
   
       $display("SHA-256 Test Result:");
       $display("Input Data: %h", padded_data);
-      $display("Hash Result: %p", hash_result);
+      $display("Hash Result: %h", hash_result);
   
     end
   endtask
@@ -189,6 +178,7 @@ module apb_top_tb;
     random_i = 0;
 
     // Run tests
+    presetn = 0;
     repeat(2) @(posedge pclk); // Clock some cycles
     presetn = 1;
     repeat(5) @(posedge pclk); // Wait after reset
@@ -196,7 +186,7 @@ module apb_top_tb;
     sha256_test(); // No input argument
     repeat(200) @(posedge pclk);
 
-    $finish;
+//    $finish;
   end
 
 endmodule

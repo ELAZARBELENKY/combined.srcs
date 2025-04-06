@@ -431,18 +431,18 @@ module interface_control_logic #(
   assign abort_ack = ctl.abort;
   assign last_ack = last_o;
   assign init_ack = ctl.init & start_o;
-  assign derr_set = wr_i & fifo_waccess & overflow;
-  assign busy_set = ~core_ready_i && core_reset_delay;
-  assign busy_clr = core_ready_i;
-  assign rdy_set = empty;
-  assign rdy_clr = (upborder | overflow) & ~empty;
-  assign avl_set = done_i;
-  assign avl_clr = rd_i & raddr_i == HASH_ADDR;
-  assign derr_clr = rd_i & raddr_i == STS_ADDR;
-  assign faultinjdet_clr = rd_i & raddr_i == STS_ADDR;
-  assign keyunlocked_clr = cfg.hmacsavekey;
-  assign faultinjdet_set = fault_inj_det_i;
-  assign keyunlocked_set = done_i;
+  assign derr_set = wr_i & fifo_waccess & overflow;//
+  assign busy_set = ~core_ready_i && core_reset_delay;//
+  assign busy_clr = core_ready_i;//
+  assign rdy_set = empty;//
+  assign rdy_clr = (upborder | overflow) & ~empty;//
+  assign avl_set = done_i;//
+  assign avl_clr = rd_i & raddr_i == HASH_ADDR;//
+  assign derr_clr = rd_i & raddr_i == STS_ADDR;//
+  assign faultinjdet_clr = rd_i & raddr_i == STS_ADDR;//
+  assign keyunlocked_clr = cfg.hmacsavekey;//
+  assign faultinjdet_set = fault_inj_det_i;//
+  assign keyunlocked_set = done_i;//
 
   id_t id;
   cfg_t cfg;
