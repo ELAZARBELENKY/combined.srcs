@@ -72,7 +72,7 @@ module lw_sha_main( input clk_i,
     case (ps)
       not_active: begin
         ready_o = 0;
-        if (start_i && data_valid_i && core_ready_o) begin
+        if (start_i && core_ready_o) begin
           ns = active;
         end else begin
           ns = not_active;

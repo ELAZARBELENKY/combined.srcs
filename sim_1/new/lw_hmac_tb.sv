@@ -775,6 +775,7 @@ module lw_hmac_tb;
       256'h0637697e16c69aaf54c92a0a4338ba4318235f7ca65937afaf39e5387e06784b;
     end
   #1; endtask
+  //09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e
   task automatic assigning_key();
     key[0:15] = { 32'h09a09c09, 32'hc989a090,
                   32'h23b432e2, 32'h8000323f,

@@ -1,10 +1,15 @@
 module apb_top_tb;
 `include "../../sources_1/new/defines.v"
   // Parameters
-  parameter FIQSHA_BUS_DATA_WIDTH = 32;
+  parameter FIQSHA_BUS_DATA_WIDTH = 64;
   parameter ADDR_WIDTH = 12;
-  parameter HASH_WIDTH = (FIQSHA_BUS_DATA_WIDTH == 32) ? 256 : 512;
-
+  parameter HASH_WIDTH = `WORD_SIZE*8;
+localparam [31:0] sha_kind = 'h8;
+`ifdef CORE_ARCH_S64
+    localparam s64 = sha_kind[1]||sha_kind[2];
+`else `ifdef CORE_ARCH_S32
+    localparam s64 = 1;
+`endif `endif
   // Signals
   reg pclk = 0;
   reg presetn;
@@ -17,14 +22,14 @@ module apb_top_tb;
   wire [FIQSHA_BUS_DATA_WIDTH-1:0] prdata;
   wire pslverr;
   wire irq_o;
-  reg [255:0] aux_key_i;
+  reg [1023:0] aux_key_i = '0;
   reg [1:0] random_i;
   wire dma_wr_req_o;
   wire dma_rd_req_o;
 
   // Testbench Execution
   reg [HASH_WIDTH / FIQSHA_BUS_DATA_WIDTH - 1:0][FIQSHA_BUS_DATA_WIDTH - 1:0] hash_result;
-
+  reg [FIQSHA_BUS_DATA_WIDTH - 1:0] done=0;
   // Instantiate
   lw_sha_apb_top dut (
     .pclk(pclk),
@@ -38,7 +43,9 @@ module apb_top_tb;
     .prdata(prdata),
     .pslverr(pslverr),
     .irq_o(irq_o),
+`ifdef HMACAUXKEY
     .aux_key_i(aux_key_i),
+`endif
     .random_i(random_i),
     .dma_wr_req_o(dma_wr_req_o),
     .dma_rd_req_o(dma_rd_req_o)
@@ -51,7 +58,6 @@ module apb_top_tb;
   initial begin
     presetn = 0;
     @(posedge pclk);
-    @(posedge pclk);
     presetn = 1;
   end
 
@@ -60,19 +66,20 @@ module apb_top_tb;
     input [ADDR_WIDTH - 1:0] addr;
     input [FIQSHA_BUS_DATA_WIDTH - 1:0] wdata;
     begin
-      psel = 1;           // Select the slave
-      paddr = addr;       // Set address
-      pwdata = wdata;       // Set write data
-      pwrite = 1;         // Write transaction
-      penable = 0;        // Setup phase - penable LOW
-      @(posedge pclk);     // End of Setup phase
+      #1
+      psel <= 1;           // Select the slave
+      paddr <= addr;       // Set address
+      pwdata <= wdata;       // Set write data
+      pwrite <= 1;         // Write transaction
+      penable <= 0;        // Setup phase - penable LOW
+      #10
       if (addr == 'h140 && ~pready) wait (pready==1); // Wait for slave to be ready
 
-      penable = 1;        // Enable phase - penable HIGH
-      @(posedge pclk);     // Slave samples data
+      penable <= 1;        // Enable phase - penable HIGH
+      #10
 
-      penable = 0;        // End of Enable phase
-      psel = 0;         // Deselect the slave
+      penable <= 0;        // End of Enable phase
+      psel <= 0;         // Deselect the slave
 //      @(posedge pclk);     // Wait for pready
     end
   endtask
@@ -82,17 +89,16 @@ task apb_read;
   input [ADDR_WIDTH - 1:0] addr;
   output reg [FIQSHA_BUS_DATA_WIDTH - 1:0] rdata;
   begin
-    wait(pready == 1);   // Wait for slave to be ready
+  #1
+//    wait(pready == 1);   // Wait for slave to be ready
     psel = 1;            // Select slave
     paddr = addr;        // Set address
     pwrite = 0;          // Read transaction
     penable = 0;         // Setup phase
-    @(posedge pclk);     // End of Setup phase
-
+#10
     penable = 1;         // Enable phase
-    @(posedge pclk);     // Slave samples address and starts data transfer
-    
-    wait(pready == 1);   // Wait for slave ready (data available)
+#10    
+//    wait(pready == 1);   // Wait for slave ready (data available)
     rdata = prdata;      // Capture read data
 
     // Clear signals
@@ -104,63 +110,93 @@ endtask
 
   // SHA-256 Test Case (Precise, with Padding)
   task automatic sha256_test;
-  
     //input [FIQSHA_BUS_DATA_WIDTH - 1:0] test_data;
     begin
+
       // Padded data for "abc" (512 bits = 64 bytes)
 //      localparam string input_str = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstuabcdefghigklmnopqrstuvwxyz";
       localparam string input_str = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu";
 //      localparam string input_str = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
 //      localparam string input_str = "abc";
       localparam length = input_str.len()*8;
+`ifdef CORE_ARCH_S64
       localparam num = length >= `WORD_SIZE*14 ?
         16<<($clog2(length+`WORD_SIZE*2+1)-($clog2(`WORD_SIZE)+4)):16;
-      reg [num*`WORD_SIZE-1:0] padded_data = 0;
-
+`else `ifdef CORE_ARCH_S32
+      localparam int num = length >= `WORD_SIZE/(s64?1:2)*14 ?
+          ($clog2(length+`WORD_SIZE/(s64?1:2)*2+1)-8)*16:16;
+`endif `endif
+      reg [num*`WORD_SIZE/(s64?1:2)-1:0] padded_data = 0;
+      
       logic [length-1:0] hex_value;
       // Converting each character to its hexadecimal value
       for (int i = 0; i < length; i++) begin
           hex_value[(length-1 - i * 8) -: 8] = input_str[i];
       end
-      padded_data[num*`WORD_SIZE-1-:length+1] = {hex_value,1'b1};
-      padded_data[11:0] = length;
-      $display("%h", padded_data);
-      $display("%d", num);
+      padded_data[num*`WORD_SIZE/(s64?1:2)-1-:length+1] = {hex_value,1'b1};
+`ifdef CORE_ARCH_S64
+      padded_data[15:0] = length + ((sha_kind > 5) ? `WORD_SIZE/(s64?1:2)*16:0);
+`else `ifdef CORE_ARCH_S32
+      padded_data[15:0] = length + ((sha_kind > 1) ? `WORD_SIZE/(s64?1:2)*16:0);
+`endif `endif
 //      // 1. Reset the core
 //      apb_write('h10, 32'h1);
 //      repeat(2) @(posedge pclk);
 //      apb_write('h10, 32'h0);
 //      repeat(2) @(posedge pclk);
-  
+      $display("input data - Hexa: %h", hex_value);
+      $display("input data padded: %h", padded_data);
       // 2. Configure for SHA-256
-      apb_write('h10, 32'h0); // OPCODE = 0
+      apb_write('h10, sha_kind); // OPCODE = 0
 //      apb_write('h10, 32'h0);
   
 //      wait(pready == 1);
       apb_write('h20, 32'h1);  // CTL.INIT = 1
 //      apb_write('h20, 32'h0);
-      
-//      wait(pready == 1);
-//      apb_write('h20, 32'h1);  // CTL.LAST = 1
-//      apb_write('h20, 32'h0);
-      
-         // 3. Send Data (Padded - 512 bits)
+`ifdef CORE_ARCH_S64
+         // 3. Send KEY (Padded - 512 bits)
+      for (int i = 0; i < (s64?32:16); i++) begin
+          apb_write('h150,
+          aux_key_i[(16*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
+      $display("%d%d",num,i);
+      end
+`else `ifdef CORE_ARCH_S32
+      for (int i = 0; i < 16; i++) begin
+          apb_write('h150,
+          aux_key_i[(16*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
+      $display("%d%d",num,i);
+      end
+`endif `endif
+
+         // 4. Send Data (Padded - 512 bits)
+`ifdef CORE_ARCH_S64
+      for (int i = 0; i < num*(s64?2:1); i++) begin
+          apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
+          if (i == num*(s64?2:1)-16) apb_write('h20, 32'h2);
+          $display("%d%d",num,i);
+      end
+`else `ifdef CORE_ARCH_S32
       for (int i = 0; i < num; i++) begin
           apb_write('h140, padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
-          if (i == num/2) apb_write('h20, 32'h2);
+          if (i == num-16) apb_write('h20, 32'h2);
+          $display("%d%d",num,i);
       end
+`endif `endif
 
-      // 4. Wait for result (CRITICAL: Adjust!)
-//      repeat(50) @(posedge pclk);
- 
-      // 5. Read the hash result
+      // 5. Wait for result (CRITICAL: Adjust!)
+      while (done[0] !== 1'b1) apb_read('h030,done);
+
+      // 6. Read the hash result
       for (int i = 0; i < HASH_WIDTH / FIQSHA_BUS_DATA_WIDTH; i++) begin
         apb_read('h100 + (i * (FIQSHA_BUS_DATA_WIDTH / 8)), hash_result[i]);
-        @(posedge pclk); // Add a clock cycle after each read
+//        @(posedge pclk); // Add a clock cycle after each read
       end
   
       $display("SHA-256 Test Result:");
-      $display("Input Data: %h", padded_data);
+      $display("input data(UTF-8): %s", input_str);
+      $display("input data - Hexa: %h", hex_value);
+      $display("input data padded: %h", padded_data);
+      $display("num of blocks: %d", num*32/(`WORD_SIZE/(s64?1:2)*16));
       $display("Hash Result: %h", hash_result);
   
     end
@@ -174,7 +210,11 @@ endtask
     pwrite = 0;
     paddr = 0;
     pwdata = 0;
-    aux_key_i = 0;
+`ifdef CORE_ARCH_S64
+    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e<<(s64?512:0);
+`else `ifdef CORE_ARCH_S32
+    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e;
+`endif `endif
     random_i = 0;
 
     // Run tests

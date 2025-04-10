@@ -47,19 +47,19 @@ module hmac_apb_wrapper #(
     logic                 hmac_abort_i;
     logic                 hmac_last_i;
     logic                 hmac_data_valid_i;
-    logic [63:0]          hmac_data_i;
+    logic [D_WIDTH-1:0]          hmac_data_i;
     logic [3:0]           hmac_opcode_i;
-    logic [63:0]          hmac_key_i;
+    logic [D_WIDTH-1:0]          hmac_key_i;
     logic                 hmac_key_valid_i;
     logic                 hmac_key_ready_o;
-    logic [63:0]          hmac_hash_o[7:0];
+    logic [D_WIDTH-1:0]   hmac_hash_o[7:0];
     logic                 hmac_ready_o;
     logic                 hmac_core_ready_o;
     logic                 hmac_done_o;
     logic                 hmac_fault_inj_det_o;
 
     // Internal registers
-    logic [63:0]          key_buffer[7:0]; // 512-bit key buffer
+    logic [D_WIDTH-1:0]          key_buffer[7:0]; // 512-bit key buffer
     logic [2:0]           key_index;
     logic                 key_loaded;
     logic                 operation_active;
@@ -81,7 +81,7 @@ module hmac_apb_wrapper #(
 
     logic start_pending;
     // Instantiate APB Slave Adapter
-    APB_slave_adapter #(
+    apb_slave_adapter #(
         .D_WIDTH(D_WIDTH),
         .A_WIDTH(A_WIDTH)
     ) apb_adapter (

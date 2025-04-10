@@ -12,7 +12,7 @@
 module apb_slave_adapter #(
     parameter int D_WIDTH        = 32,
     parameter int A_WIDTH        = 12,
-    parameter bit NO_WAIT_STATES = 0   // enables transfer completion in 2 cycles
+    parameter bit NO_WAIT_STATES = 1   // enables transfer completion in 2 cycles
 ) (
     input  logic                 pclk
   , input  logic                 presetn
@@ -40,28 +40,28 @@ module apb_slave_adapter #(
   , input  logic                 con_slv_error
 );
 
-  assign pslverr = con_slv_error & penable & psel;
+  assign pslverr = con_slv_error & penable & psel;//
 
-  logic [1:0] read_cond = 0;
-  logic [1:0] write_cond = 0;
-  logic read_valid = 0;
+  logic [1:0] read_cond;
+  logic [1:0] write_cond;
+  logic read_valid;
 
-  assign con_waddr = paddr;
-  assign con_raddr = paddr;
-  assign con_wdata = pwdata;
-  assign con_wbyte_enable = pstrb;
-  assign con_rbyte_enable = '1;
-  assign con_wr = write_cond == 2'b01;//write_cond[0] & ~write_cond[1];
-  assign con_rd = con_rd == 2'b01;//read_cond[0] & ~read_cond[1];
-  assign con_rd_ack = read_valid;
+  assign con_waddr = paddr;//
+  assign con_raddr = paddr;//
+  assign con_wdata = pwdata;//
+  assign con_wbyte_enable = pstrb;//
+  assign con_rbyte_enable = '1;//
+  assign con_wr = write_cond[0] & !write_cond[1];//
+  assign con_rd = read_cond[0] & ~read_cond[1];//
+  assign con_rd_ack = read_valid;//
 
-  assign pready = con_wr_ack | read_valid | con_slv_error;
+  assign pready = con_wr_ack || read_valid || con_slv_error;
 
   generate
     if (NO_WAIT_STATES) begin: l_wr_rd_comb
 
       always_comb begin
-        write_cond[0] = psel &&  penable &&  pwrite;
+        write_cond[0] = psel && penable &&  pwrite;
         read_cond[0]  = psel && !penable && !pwrite;
         read_valid    = con_read_valid;
         prdata        = con_rdata;

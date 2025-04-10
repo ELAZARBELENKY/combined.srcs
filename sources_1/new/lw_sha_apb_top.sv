@@ -22,15 +22,16 @@ module lw_sha_apb_top (
 	// interrupt request
 	 irq_o,
 	// extensions
-	 aux_key_i,
-   random_i,
+`ifdef HMACAUXKEY
+  aux_key_i,
+`endif   random_i,
   // DMA support
    dma_wr_req_o,
    dma_rd_req_o
 );
 
   parameter FIQSHA_FIFO_SIZE = 4;
-  parameter FIQSHA_BUS_DATA_WIDTH = 32;
+  parameter FIQSHA_BUS_DATA_WIDTH = 64;
   
   localparam DATA_WIDTH = `WORD_SIZE;
 
@@ -47,17 +48,21 @@ module lw_sha_apb_top (
   // interrupt request
   output irq_o;
   // extensions
-  input [255:0] aux_key_i;
+`ifdef HMACAUXKEY
+  input [`KEY_SIZE-1:0] aux_key_i;
+`endif
   input logic [1:0] random_i;
   // DMA support
   output dma_wr_req_o;
   output dma_rd_req_o;
-
+  
+logic key_ready, key_valid;
+logic [`WORD_SIZE-1:0] key;
 logic con_wr, con_wr_ack, con_rd, con_rd_ack, con_read_valid, con_slv_error;
 logic [11:0] con_waddr, con_raddr;
 logic [FIQSHA_BUS_DATA_WIDTH-1:0] con_wdata, con_rdata;
 
- sha2_apb_slave_adapter
+ apb_slave_adapter
 // #(
 //    .D_WIDTH(FIQSHA_BUS_DATA_WIDTH)
 //)
@@ -120,7 +125,9 @@ lw_sha_interface_control_logic #(
    .rdata_o(con_rdata),
    .read_valid_o(con_read_valid),
 //   .read_ready_i('1),
+`ifdef HMACAUXKEY
    .aux_key_i(aux_key_i),
+`endif
 //   .wstuck_i('0),
 //   .rstuck_i('0),
    .burst_type_i('0),
@@ -130,6 +137,9 @@ lw_sha_interface_control_logic #(
 //   .rtransaction_active_i('0),
    .irq_o(irq_o),
   // native interface
+   .key_o(key),
+   .key_valid_o(key_valid),
+   .key_ready_i(key_ready),
    .start_o(start),
    .abort_o(abort),
    .last_o(last),
@@ -147,17 +157,6 @@ lw_sha_interface_control_logic #(
    .core_reset_o(core_reset)
 );
 logic key_valid_i = 1;
-logic key_ready_o;
-logic [31:0] key;
-logic [3:0] ctr = 0;
-
-  always_ff @(posedge pclk) begin
-    if (start) ctr <= 0;
-    else if (key_ready_o&&key_valid_i) begin
-      key <= aux_key_i[ctr*31-:32];
-      ctr <= ctr + 1;
-    end
-  end
 
 lw_hmac u_lw_hmac_core (
    .clk_i(pclk),
@@ -167,8 +166,8 @@ lw_hmac u_lw_hmac_core (
    .last_i(last),
    .data_valid_i(valid),
    .key_i(key),
-   .key_valid_i(key_valid_i),
-   .key_ready_o(key_ready_o),
+   .key_valid_i(key_valid),
+   .key_ready_o(key_ready),
    .ready_o(ready),
    .opcode_i(opcode),
    .data_i(data),

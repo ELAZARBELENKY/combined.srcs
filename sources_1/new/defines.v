@@ -9,8 +9,14 @@
  *
  */
 
-`define CORE_ARCH_S32
+`define CORE_ARCH_S64
 `define FIQLIB__ASYNC_RST
+
+//`define HMACAUXKEY;
+
+`ifdef HMACAUXKEY
+  `define KEY_SIZE 512
+`endif
 
 `ifdef CORE_ARCH_S32
    `define WORD_SIZE 32

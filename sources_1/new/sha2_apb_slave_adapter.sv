@@ -39,8 +39,8 @@ module sha2_apb_slave_adapter #(
 
   assign pslverr = con_slv_error & penable & psel;
 
-  assign con_waddr = paddr[11:0];
-  assign con_raddr = paddr[11:0];
+  assign con_waddr = paddr;
+  assign con_raddr = paddr;
   assign con_wdata = pwdata;
   assign con_wbyte_enable = pstrb;
   assign con_rbyte_enable = '1;
