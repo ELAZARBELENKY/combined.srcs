@@ -12,7 +12,7 @@
 
 
 module lw_sha_interface_control_logic #(
-   parameter int FIQSHA_BUS_DATA_WIDTH = 64,
+   parameter int FIQSHA_BUS_DATA_WIDTH = 32,
    parameter int FIQSHA_FIFO_SIZE = 4,
    parameter int ARCH_SZ = `WORD_SIZE,
    parameter bit INCLUDE_PRNG = 0,

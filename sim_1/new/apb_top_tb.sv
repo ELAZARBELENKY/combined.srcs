@@ -1,7 +1,7 @@
 module apb_top_tb;
 `include "../../sources_1/new/defines.v"
   // Parameters
-  parameter FIQSHA_BUS_DATA_WIDTH = 64;
+  parameter FIQSHA_BUS_DATA_WIDTH = 32;
   parameter ADDR_WIDTH = 12;
   parameter HASH_WIDTH = `WORD_SIZE*8;
 localparam [31:0] sha_kind = 'h8;
