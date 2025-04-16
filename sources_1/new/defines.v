@@ -8,14 +8,18 @@
  *  is strictly forbidden unless prior written permission is obtained from FortifyIQ, Inc.
  *
  */
-
+`define VIASHIFT
+// The VIASHIFT is for implementing the key-saving procedure via SHIFT operation
+// instead of via pointers
 `define CORE_ARCH_S64
 `define FIQLIB__ASYNC_RST
 
-//`define HMACAUXKEY;
+`define HMACAUXKEY;
+
+`define FIQSHA_BUS 32
 
 `ifdef HMACAUXKEY
-  `define KEY_SIZE 512
+  `define KEY_SIZE 508
 `endif
 
 `ifdef CORE_ARCH_S32

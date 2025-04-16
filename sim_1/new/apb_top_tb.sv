@@ -1,10 +1,10 @@
 module apb_top_tb;
 `include "../../sources_1/new/defines.v"
   // Parameters
-  parameter FIQSHA_BUS_DATA_WIDTH = 32;
+  parameter FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS;
   parameter ADDR_WIDTH = 12;
   parameter HASH_WIDTH = `WORD_SIZE*8;
-localparam [31:0] sha_kind = 'h8;
+localparam [31:0] sha_kind = 'ha;
 `ifdef CORE_ARCH_S64
     localparam s64 = sha_kind[1]||sha_kind[2];
 `else `ifdef CORE_ARCH_S32
@@ -144,8 +144,6 @@ endtask
 //      repeat(2) @(posedge pclk);
 //      apb_write('h10, 32'h0);
 //      repeat(2) @(posedge pclk);
-      $display("input data - Hexa: %h", hex_value);
-      $display("input data padded: %h", padded_data);
       // 2. Configure for SHA-256
       apb_write('h10, sha_kind); // OPCODE = 0
 //      apb_write('h10, 32'h0);
@@ -158,13 +156,13 @@ endtask
       for (int i = 0; i < (s64?32:16); i++) begin
           apb_write('h150,
           aux_key_i[(16*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
-      $display("%d%d",num,i);
+//      $display("%d%d",num,i);
       end
 `else `ifdef CORE_ARCH_S32
       for (int i = 0; i < 16; i++) begin
           apb_write('h150,
           aux_key_i[(16*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
-      $display("%d%d",num,i);
+//      $display("%d%d",num,i);
       end
 `endif `endif
 
@@ -173,13 +171,13 @@ endtask
       for (int i = 0; i < num*(s64?2:1); i++) begin
           apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
           if (i == num*(s64?2:1)-16) apb_write('h20, 32'h2);
-          $display("%d%d",num,i);
+//          $display("%d%d",num,i);
       end
 `else `ifdef CORE_ARCH_S32
       for (int i = 0; i < num; i++) begin
           apb_write('h140, padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
           if (i == num-16) apb_write('h20, 32'h2);
-          $display("%d%d",num,i);
+//          $display("%d%d",num,i);
       end
 `endif `endif
 
@@ -196,6 +194,9 @@ endtask
       $display("input data(UTF-8): %s", input_str);
       $display("input data - Hexa: %h", hex_value);
       $display("input data padded: %h", padded_data);
+`ifdef HMACAUXKEY
+      $display("aux_key: %h", aux_key_i[`KEY_SIZE-1:0]);
+`endif
       $display("num of blocks: %d", num*32/(`WORD_SIZE/(s64?1:2)*16));
       $display("Hash Result: %h", hash_result);
   
@@ -211,7 +212,7 @@ endtask
     paddr = 0;
     pwdata = 0;
 `ifdef CORE_ARCH_S64
-    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e<<(s64?512:0);
+    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e;
 `else `ifdef CORE_ARCH_S32
     aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e;
 `endif `endif

@@ -12,7 +12,7 @@
 
 
 module lw_sha_interface_control_logic #(
-   parameter int FIQSHA_BUS_DATA_WIDTH = 32,
+   parameter int FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS,
    parameter int FIQSHA_FIFO_SIZE = 4,
    parameter int ARCH_SZ = `WORD_SIZE,
    parameter bit INCLUDE_PRNG = 0,
@@ -66,9 +66,9 @@ module lw_sha_interface_control_logic #(
    
   localparam byte BUS_DATA_IN_ARCH_SZ = (ARCH_SZ + FIQSHA_BUS_DATA_WIDTH - 1)/FIQSHA_BUS_DATA_WIDTH;
   logic first_word = 1;
-`ifdef CORE_ARCH_S64
+//`ifdef CORE_ARCH_S64
   logic s64;
-`endif
+//`endif
   logic [31:0] id_reg = ID_VAL;
   logic [31:0] cfg_reg, ctl_reg, sts_reg, ie_reg, seed_reg;
   logic [`WORD_SIZE-1:0] din_reg;
@@ -203,7 +203,9 @@ module lw_sha_interface_control_logic #(
 //  assign valid_o = (waddr_i==DIN_ADDR|| waddr_i==CTL_ADDR&& core_ready_i)&&wr_i;
 `ifdef CORE_ARCH_S64
   assign s64 = cfg_reg[2]||cfg_reg[1];
-`endif
+`else `ifdef CORE_ARCH_S32
+  assign s64 = 1'b1;
+`endif `endif
 
 `ifdef HMACAUXKEY
 logic [3:0] ctr = 0;

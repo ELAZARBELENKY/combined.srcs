@@ -31,7 +31,7 @@ module lw_sha_apb_top (
 );
 
   parameter FIQSHA_FIFO_SIZE = 4;
-  parameter FIQSHA_BUS_DATA_WIDTH = 32;
+  parameter FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS;
   
   localparam DATA_WIDTH = `WORD_SIZE;
 

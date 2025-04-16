@@ -58,7 +58,9 @@ module lw_hmac ( input clk_i,
 
   logic hmac_last, hmac_data_valid, hmac_start = 1'b0;
   logic [`WORD_SIZE-1:0] hmac_data;
-
+`ifdef VIASHIFT
+  logic [`WORD_SIZE-1:0] key;
+`endif
   lw_sha_main hashing ( .aresetn_i(aresetn_i),
                         .clk_i(clk_i),
                         .start_i(hmac_start||start_i),
@@ -81,7 +83,11 @@ module lw_hmac ( input clk_i,
   assign s64 = mode[2]||mode[1];
   always_comb begin
     if (inner_hash) hmac_data = fb ? key_i ^ {16{8'h36}} : data_i;
-    else if (fb) hmac_data = key_reg[counter];
+`ifdef VIASHIFT
+    else if (fb) hmac_data = key^{16{8'h5c}}; 
+`else
+    else if (fb) hmac_data = key_reg[counter]^{16{8'h5c}};
+`endif
     else begin
       if (counter[3]) begin
         if (s64) hmac_data = inner_hashed[counter[2:0]];
@@ -96,7 +102,11 @@ module lw_hmac ( input clk_i,
   end
 `else `ifdef CORE_ARCH_S32
   assign hmac_data = inner_hash ? (fb?key_i^{8{8'h36}}:data_i):
-                      fb ? key_reg[counter]:
+`ifdef VIASHIFT
+                      fb ? key^{8{8'h5c}}:
+`else
+                      fb ? key_reg[counter]^{8{8'h5c}}:
+`endif
                       counter == (mode?8:7) ? 32'h80000000:
                       counter==0 ? mode?32'h2e0:32'h300:
                       counter[3] ? inner_hashed[counter[2:0]] : 32'b0;
@@ -177,12 +187,16 @@ module lw_hmac ( input clk_i,
               counter <= counter - 1;
             end
           end
-`ifdef CORE_ARCH_S64
-          if (fb) key_reg[counter] <= key_i^{16{8'h5c}};
-`else `ifdef CORE_ARCH_S32
-          if (fb) key_reg[counter] <= key_i^{8{8'h5c}};
-`endif `endif
+`ifdef VIASHIFT
+          if (fb&&key_valid_i) key_reg <= {key_i,key_reg[15:1]};
+`else
+          if (fb) key_reg[counter] <= key_i;
+`endif
           if (done_hash) begin
+`ifdef VIASHIFT
+            key <= key_reg[0];
+            key_reg <= {'0,key_reg[15:1]};
+`endif
             inner_hash <= 1'b0;
             inner_hashed <= sha_output;
             fb <= 1'b1;
@@ -195,6 +209,10 @@ module lw_hmac ( input clk_i,
           end
           hmac_start <= 1'b0;
           counter <= counter - 1;
+`ifdef VIASHIFT
+          key <= key_reg[0];
+          key_reg <= {'0,key_reg[15:1]};
+`endif
           if (done_hash && !abort_i) begin
             hash_o <= sha_output;
             done_o <= 1'b1;
