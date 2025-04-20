@@ -9,7 +9,9 @@
   localparam DIN_ADDR  = 12'h140;
   localparam KEY_ADDR  = 12'h150;
   localparam SEED_ADDR = 12'h300;
-
+`ifndef FIQSHA_PRNG_INIT
+`define FIQSHA_PRNG_INIT "SW"
+`endif
 
 module lw_sha_interface_control_logic #(
    parameter int FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS,
@@ -80,6 +82,7 @@ module lw_sha_interface_control_logic #(
     if (~resetn_i) begin
       cfg_reg <= '0;
       ctl_reg <= '0;
+      sts_reg[2] <= 1'b0;
       sts_reg[5] <= 1'b0;
       ie_reg <= 32'h2;
       seed_reg <= '0;
@@ -104,41 +107,43 @@ module lw_sha_interface_control_logic #(
 //            else
 //              seed_reg <= {31'h0, wdata_i[0]};
 //          end
+          IE_ADDR: begin
+            ie_reg <= {27'h0, wdata_i[4:0]};
+          end
           DIN_ADDR: begin
-//            if (ready_i) begin
 `ifdef CORE_ARCH_S64
-              if (s64) begin
-                if (first_word) din_reg[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << 32;
-                else din_reg[`WORD_SIZE/2-1:0] <= wdata_i;
-                valid_o <= wr_i&&!first_word;
-                first_word <= !first_word;
-              end else begin
-                din_reg <= wdata_i;
-                valid_o <= wr_i;
-              end
-`else `ifdef CORE_ARCH_S32
+            if (s64) begin
+              if (first_word) din_reg[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << 32;
+              else din_reg[`WORD_SIZE/2-1:0] <= wdata_i;
+              valid_o <= wr_i&&!first_word;
+              first_word <= !first_word;
+            end else begin
               din_reg <= wdata_i;
               valid_o <= wr_i;
+            end
+`else `ifdef CORE_ARCH_S32
+            din_reg <= wdata_i;
+            valid_o <= wr_i;
 `endif `endif
-
-//            end
+            if (!ready_i) sts_reg[2] <= 1'b1;
           end
 `ifndef HMACAUXKEY
           KEY_ADDR: begin
 `ifdef CORE_ARCH_S64
-              if (s64) begin
-                if (first_word) key_o[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << 32;
-                else key_o[`WORD_SIZE/2-1:0] <= wdata_i;
-                key_valid_o <= wr_i&&!first_word;
-                first_word <= !first_word;
-              end else begin
-                key_o <= wdata_i;
-                key_valid_o <= wr_i;
-              end
-`else `ifdef CORE_ARCH_S32
+            if (s64) begin
+              if (first_word) key_o[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << 32;
+              else key_o[`WORD_SIZE/2-1:0] <= wdata_i;
+              key_valid_o <= wr_i&&!first_word;
+              first_word <= !first_word;
+            end else begin
               key_o <= wdata_i;
               key_valid_o <= wr_i;
+            end
+`else `ifdef CORE_ARCH_S32
+            key_o <= wdata_i;
+            key_valid_o <= wr_i;
 `endif `endif
+            if (!key_ready_i) sts_reg[2] <= 1'b1;
           end
 `endif
           default:;
@@ -186,26 +191,124 @@ module lw_sha_interface_control_logic #(
 //     else read_valid_o <= 1'b0;
     end
   end
-  assign hash_reg = {hash_i[7],hash_i[6],hash_i[5],hash_i[4],hash_i[3],hash_i[2],hash_i[1],hash_i[0]};
-  assign sts_reg[4:0] = {fault_inj_det_i, core_ready_i, 1'b0, ready_i, done_i};
+  typedef struct {
+    logic [15:0] majorid;
+    logic [15:0] minorid;
+  } id_t;
+
+  typedef struct {
+    logic srst;
+//    logic [4:0] fifointhld;
+    logic hmacsavekey;
+    logic hmacuseintkey;
+    logic hmacauxkey;
+    logic [3:0] opcode;
+  } cfg_t;
+
+  typedef struct {
+    logic abort;
+    logic last;
+    logic init;
+  } ctl_t;
+
+  typedef struct {
+    logic [4:0] fifoinlvl;
+    logic keyunlocked;
+    logic faultinjdet;
+    logic busy;
+    logic derr;
+    logic rdy;
+    logic avl;
+  } sts_t;
+
+  typedef struct {
+    logic keyunlockedie;
+    logic faultinjdetie;
+    logic busyie;
+    logic derrie;
+    logic rdyie;
+    logic avlie;
+  } ie_t;
+
+  typedef struct {
+    logic [255:0] hashhigh;
+    logic [255:0] hash;
+  } hash_t;
+
+  typedef struct {
+    logic [ARCH_SZ*8-1:0] statesh [3];
+  } state_t;
+
+  typedef struct {
+    logic [(`FIQSHA_PRNG_INIT == "SW" ? 31 : 0) : 0] seed;
+  } seed_t;
+  
+  id_t id;
+  cfg_t cfg;
+  ctl_t ctl;
+  sts_t sts;
+  ie_t ie;
+//  seed_t seed;
+  always_comb begin
+    id = '{majorid: id_reg[31:16],
+           minorid: id_reg[15:0]};
+
+    cfg = '{srst: cfg_reg[31],
+           hmacsavekey: cfg_reg[6],
+           hmacuseintkey: cfg_reg[5],
+           hmacauxkey: cfg_reg[4],
+           opcode: cfg_reg[3:0]};
+
+    ctl = '{abort: ctl_reg[2],
+           last: ctl_reg[1],
+           init: ctl_reg[0]};
+
+    sts = '{fifoinlvl: sts_reg[12:8],
+           keyunlocked: sts_reg[5],
+           faultinjdet: sts_reg[4],
+           busy: sts_reg[3],
+           derr: sts_reg[2],
+           rdy: sts_reg[1],
+           avl: sts_reg[0]};
+
+    ie = '{keyunlockedie: ie_reg[5],
+           faultinjdetie: ie_reg[4],
+           busyie: ie_reg[3],
+           derrie: ie_reg[2],
+           rdyie: ie_reg[1],
+           avlie: ie_reg[0]};
+  end
+
+  assign hash_reg = {hash_i[7],hash_i[6],hash_i[5],hash_i[4],
+                     hash_i[3],hash_i[2],hash_i[1],hash_i[0]};
+  assign sts_reg[4:3] = {fault_inj_det_i, !core_ready_i};
+  assign sts_reg[1:0] = {ready_i||key_ready_i, done_i};
   assign sts_reg[31:5] = '0;
-  assign start_o = ctl_reg[0];
-  assign last_o = ctl_reg[1];
-  assign abort_o = ctl_reg[2];
-  assign opcode_o = cfg_reg[3:0];
+  assign start_o = ctl.init;
+  assign last_o = ctl.last;
+  assign abort_o = ctl.abort;
+  assign opcode_o = cfg.opcode;
   assign data_o = din_reg;
 //  always_ff @(posedge clk_i) wr_ack_o <= ready_i;
-  assign wr_ack_o = ready_i;
+  assign wr_ack_o = ready_i || key_ready_i;
   assign rd_ack_i = 1;
-  assign slv_error_o = 0;
-  assign core_reset_o = !cfg_reg[31];
+  assign slv_error_o = sts.derr;
+  assign core_reset_o = !cfg.srst;
   assign read_valid_o = rd_i;
+  assign dma_wr_req_o = sts.rdy;
+  assign dma_rd_req_o = sts.avl;
 //  assign valid_o = (waddr_i==DIN_ADDR|| waddr_i==CTL_ADDR&& core_ready_i)&&wr_i;
 `ifdef CORE_ARCH_S64
-  assign s64 = cfg_reg[2]||cfg_reg[1];
+  assign s64 = cfg.opcode[2]||cfg.opcode[1];
 `else `ifdef CORE_ARCH_S32
   assign s64 = 1'b1;
 `endif `endif
+  assign irq_o =
+     (sts.faultinjdet & ie.faultinjdetie) |
+     (sts.busy & ie.busyie) |
+     (sts.derr & ie.derrie) |
+     (sts.rdy & ie.rdyie) |
+     (sts.avl & ie.avlie);
 
 `ifdef HMACAUXKEY
 logic [3:0] ctr = 0;
@@ -229,8 +332,7 @@ logic [3:0] ctr = 0;
       end
     end else if (start_o) begin
       ctr <= 1;
-      key_o <= s64 ? aux_key_i[`KEY_SIZE-1-:`WORD_SIZE]:
-                     aux_key_i[`KEY_SIZE-1-:`WORD_SIZE/2];
+      key_o <= s64 ? aux_key_i[`KEY_SIZE-1-:`WORD_SIZE]:aux_key_i[`KEY_SIZE-1-:`WORD_SIZE/2];
     end
   end
 `endif

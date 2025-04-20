@@ -23,8 +23,9 @@ module lw_sha_apb_top (
 	 irq_o,
 	// extensions
 `ifdef HMACAUXKEY
-  aux_key_i,
-`endif   random_i,
+   aux_key_i,
+`endif
+   random_i,
   // DMA support
    dma_wr_req_o,
    dma_rd_req_o
@@ -63,9 +64,9 @@ logic [11:0] con_waddr, con_raddr;
 logic [FIQSHA_BUS_DATA_WIDTH-1:0] con_wdata, con_rdata;
 
  apb_slave_adapter
-// #(
-//    .D_WIDTH(FIQSHA_BUS_DATA_WIDTH)
-//)
+ #(
+    .D_WIDTH(FIQSHA_BUS_DATA_WIDTH)
+)
  u_apb_slv (
    .pclk(pclk),
    .presetn(presetn),

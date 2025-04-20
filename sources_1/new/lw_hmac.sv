@@ -210,6 +210,7 @@ module lw_hmac ( input clk_i,
           hmac_start <= 1'b0;
           counter <= counter - 1;
 `ifdef VIASHIFT
+          if (counter == 4'b0) key <= '0;
           key <= key_reg[0];
           key_reg <= {'0,key_reg[15:1]};
 `endif

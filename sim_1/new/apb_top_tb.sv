@@ -171,6 +171,7 @@ endtask
       for (int i = 0; i < num*(s64?2:1); i++) begin
           apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
           if (i == num*(s64?2:1)-16) apb_write('h20, 32'h2);
+          if (i == 10)  apb_write('h30, 32'h4);
 //          $display("%d%d",num,i);
       end
 `else `ifdef CORE_ARCH_S32
@@ -212,11 +213,12 @@ endtask
     paddr = 0;
     pwdata = 0;
 `ifdef CORE_ARCH_S64
-    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e;
+    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e`ifndef HMACAUXKEY <<(s64?512:0);`else ;
+`endif
 `else `ifdef CORE_ARCH_S32
     aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e;
 `endif `endif
-    random_i = 0;
+//    random_i = 0;
 
     // Run tests
     presetn = 0;
@@ -229,5 +231,5 @@ endtask
 
 //    $finish;
   end
-
+  always @(posedge pclk) random_i <= $random % 4;
 endmodule
