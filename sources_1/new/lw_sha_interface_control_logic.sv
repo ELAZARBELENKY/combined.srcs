@@ -9,9 +9,9 @@
   localparam DIN_ADDR  = 12'h140;
   localparam KEY_ADDR  = 12'h150;
   localparam SEED_ADDR = 12'h300;
-`ifndef FIQSHA_PRNG_INIT
-`define FIQSHA_PRNG_INIT "SW"
-`endif
+//`ifndef FIQSHA_PRNG_INIT
+//`define FIQSHA_PRNG_INIT "SW"
+//`endif
 
 module lw_sha_interface_control_logic #(
    parameter int FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS,
@@ -63,6 +63,7 @@ module lw_sha_interface_control_logic #(
   localparam byte BUS_DATA_IN_ARCH_SZ = (ARCH_SZ + FIQSHA_BUS_DATA_WIDTH - 1)/FIQSHA_BUS_DATA_WIDTH;
   logic first_word = 1;
   logic s64;
+  logic hash_avliable = 1'b0;
   logic [31:0] id_reg = ID_VAL;
   logic [31:0] cfg_reg, ctl_reg, sts_reg, ie_reg, seed_reg;
   logic [`WORD_SIZE-1:0] din_reg;
@@ -80,7 +81,11 @@ module lw_sha_interface_control_logic #(
       seed_reg <= '0;
     end else begin
       if (wr_i) begin
+`ifdef HMACAUXKEY
+        wr_ack_o = ready_i || core_ready_i;
+`else
         wr_ack_o = ready_i || key_ready_i || core_ready_i;
+`endif
         case (waddr_i)
           CFG_ADDR: begin
             cfg_reg <= {wdata_i[31], 18'h0, wdata_i[12:8], 4'b0, wdata_i[3:0]};
@@ -164,7 +169,12 @@ module lw_sha_interface_control_logic #(
   
   wire [$clog2(HASH_SIZE/8)-$clog2(FIQSHA_BUS_DATA_WIDTH/8)-1:0] hash_reg_word_rptr = 
     raddr_i[$clog2(HASH_SIZE/8)-1:$clog2(FIQSHA_BUS_DATA_WIDTH/8)];
-    
+  
+  always_ff @(posedge clk_i or negedge resetn_i) begin
+    if (!resetn_i) hash_avliable <= 1'b0;
+    else if (done_i) hash_avliable <= 1'b1;
+  end
+
   always_ff @(posedge clk_i or negedge resetn_i) begin
     if (!resetn_i) begin
       rdata_o <= 32'h0;
@@ -205,7 +215,6 @@ module lw_sha_interface_control_logic #(
   } ctl_t;
 
   typedef struct {
-    logic [4:0] fifoinlvl;
     logic keyunlocked;
     logic faultinjdet;
     logic busy;
@@ -232,9 +241,9 @@ module lw_sha_interface_control_logic #(
     logic [ARCH_SZ*8-1:0] statesh [3];
   } state_t;
 
-  typedef struct {
-    logic [(`FIQSHA_PRNG_INIT == "SW" ? 31 : 0) : 0] seed;
-  } seed_t;
+//  typedef struct {
+//    logic [(`FIQSHA_PRNG_INIT == "SW" ? 31 : 0) : 0] seed;
+//  } seed_t;
   
   id_t id;
   cfg_t cfg;
@@ -256,8 +265,8 @@ module lw_sha_interface_control_logic #(
            last: ctl_reg[1],
            init: ctl_reg[0]};
 
-    sts = '{fifoinlvl: sts_reg[12:8],
-           keyunlocked: sts_reg[5],
+    
+    sts = '{keyunlocked: sts_reg[5],
            faultinjdet: sts_reg[4],
            busy: sts_reg[3],
            derr: sts_reg[2],
@@ -275,7 +284,7 @@ module lw_sha_interface_control_logic #(
   assign hash_reg = {hash_i[7],hash_i[6],hash_i[5],hash_i[4],
                      hash_i[3],hash_i[2],hash_i[1],hash_i[0]};
   assign sts_reg[4:3] = {fault_inj_det_i, !core_ready_i};
-  assign sts_reg[1:0] = {ready_i||key_ready_i, done_i};
+  assign sts_reg[1:0] = {ready_i || key_ready_i, done_i || hash_avliable};
   assign sts_reg[31:5] = '0;
   assign start_o = ctl.init;
   assign last_o = ctl.last;

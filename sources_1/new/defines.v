@@ -22,11 +22,11 @@
 `endif
 
 `ifndef HMACAUXKEY
-//  `define HMACAUXKEY;
+  `define HMACAUXKEY;
 `endif
 
 `ifndef FIQSHA_BUS
-  `define FIQSHA_BUS 128
+  `define FIQSHA_BUS 64
 `endif
 
 `ifdef HMACAUXKEY

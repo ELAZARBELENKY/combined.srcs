@@ -66,22 +66,24 @@ localparam [31:0] sha_kind = 'ha;
     input [ADDR_WIDTH - 1:0] addr;
     input [FIQSHA_BUS_DATA_WIDTH - 1:0] wdata;
     begin
-      #1
+//      #1
       psel <= 1;           // Select the slave
       paddr <= addr;       // Set address
       pwdata <= wdata;       // Set write data
       pwrite <= 1;         // Write transaction
       penable <= 0;        // Setup phase - penable LOW
-      #10
+//      #10
+      @(posedge pclk);
 //      if ((addr == 'h140||addr == 'h150) && ~pready)
 //      wait (pready==1); // Wait for slave to be ready
 
       penable <= 1;        // Enable phase - penable HIGH
-      #10
+//      #10
+      @(posedge pclk);
 wait (pready==1);
       penable <= 0;        // End of Enable phase
       psel <= 0;         // Deselect the slave
-//      @(posedge pclk);     // Wait for pready
+//      @(posedge pclk);     // Wait for pready      @(posedge pclk);
     end
   endtask
 
@@ -96,10 +98,13 @@ task apb_read;
     paddr = addr;        // Set address
     pwrite = 0;          // Read transaction
     penable = 0;         // Setup phase
-#10
+//#10
+    @(posedge pclk);
     penable = 1;         // Enable phase
     wait(pready == 1);
-#10    
+//#10
+      @(posedge pclk);
+//      wait(pready == 1);
        // Wait for slave ready (data available)
     rdata = prdata;      // Capture read data
 
@@ -159,7 +164,7 @@ endtask
 //      wait(pready == 1);
       apb_write('h20, 32'h1);  // CTL.INIT = 1
 //      apb_write('h20, 32'h0);
-`ifdef CORE_ARCH_S64
+`ifdef CORE_ARCH_S64 `ifndef HMACAUXKEY
          // 3. Send KEY (Padded - 512 bits)
       half_words = (`FIQSHA_BUS == 32 && s64)|| !s64;
       for (int i = 0; i < (half_words&&s64?32:16); i++) begin
@@ -177,7 +182,7 @@ endtask
 //      $display("%d%d",num,i);
         if (pslverr) i--;
       end
-`endif `endif
+`endif `endif `endif 
 
          // 4. Send Data (Padded - 512 bits)
 `ifdef CORE_ARCH_S64
