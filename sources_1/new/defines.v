@@ -26,7 +26,7 @@
 `endif
 
 `ifndef FIQSHA_BUS
-  `define FIQSHA_BUS 32
+  `define FIQSHA_BUS 128
 `endif
 
 `ifdef HMACAUXKEY

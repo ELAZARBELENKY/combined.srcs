@@ -73,11 +73,12 @@ localparam [31:0] sha_kind = 'ha;
       pwrite <= 1;         // Write transaction
       penable <= 0;        // Setup phase - penable LOW
       #10
-      if (addr == 'h140 && ~pready) wait (pready==1); // Wait for slave to be ready
+//      if ((addr == 'h140||addr == 'h150) && ~pready)
+//      wait (pready==1); // Wait for slave to be ready
 
       penable <= 1;        // Enable phase - penable HIGH
       #10
-
+wait (pready==1);
       penable <= 0;        // End of Enable phase
       psel <= 0;         // Deselect the slave
 //      @(posedge pclk);     // Wait for pready
@@ -97,8 +98,9 @@ task apb_read;
     penable = 0;         // Setup phase
 #10
     penable = 1;         // Enable phase
+    wait(pready == 1);
 #10    
-//    wait(pready == 1);   // Wait for slave ready (data available)
+       // Wait for slave ready (data available)
     rdata = prdata;      // Capture read data
 
     // Clear signals
@@ -110,18 +112,24 @@ endtask
 
   // SHA-256 Test Case (Precise, with Padding)
   task automatic sha256_test;
+  logic half_words;
     //input [FIQSHA_BUS_DATA_WIDTH - 1:0] test_data;
     begin
 
       // Padded data for "abc" (512 bits = 64 bytes)
-//      localparam string input_str = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstuabcdefghigklmnopqrstuvwxyz";
-      localparam string input_str = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu";
+      localparam string input_str = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstuabcdefghigklmnopqrstuvwxyz";
+//      localparam string input_str = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu";
 //      localparam string input_str = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
 //      localparam string input_str = "abc";
       localparam length = input_str.len()*8;
 `ifdef CORE_ARCH_S64
+
       localparam num = length >= `WORD_SIZE*14 ?
         16<<($clog2(length+`WORD_SIZE*2+1)-($clog2(`WORD_SIZE)+4)):16;
+        
+//      localparam int num = length >= `WORD_SIZE/(s64?1:2)*14 ?
+//        ($clog2(length+`WORD_SIZE/(s64?1:2)*2+1)-8)*16:16;
+
 `else `ifdef CORE_ARCH_S32
       localparam int num = length >= `WORD_SIZE/(s64?1:2)*14 ?
           ($clog2(length+`WORD_SIZE/(s64?1:2)*2+1)-8)*16:16;
@@ -153,37 +161,47 @@ endtask
 //      apb_write('h20, 32'h0);
 `ifdef CORE_ARCH_S64
          // 3. Send KEY (Padded - 512 bits)
-      for (int i = 0; i < (s64?32:16); i++) begin
-          apb_write('h150,
+      half_words = (`FIQSHA_BUS == 32 && s64)|| !s64;
+      for (int i = 0; i < (half_words&&s64?32:16); i++) begin
+        if (half_words) apb_write('h150,
           aux_key_i[(16*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
+        else apb_write('h150,
+          aux_key_i[(16*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
 //      $display("%d%d",num,i);
+        if (pslverr) i--;
       end
 `else `ifdef CORE_ARCH_S32
       for (int i = 0; i < 16; i++) begin
           apb_write('h150,
           aux_key_i[(16*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
 //      $display("%d%d",num,i);
+        if (pslverr) i--;
       end
 `endif `endif
 
          // 4. Send Data (Padded - 512 bits)
 `ifdef CORE_ARCH_S64
-      for (int i = 0; i < num*(s64?2:1); i++) begin
-          apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
-          if (i == num*(s64?2:1)-16) apb_write('h20, 32'h2);
-          if (i == 10)  apb_write('h30, 32'h4);
+      half_words = (`FIQSHA_BUS == 32 && s64) || !s64;
+      for (int i = 0; i < num*(half_words&&s64?2:1); i++) begin
+          if (half_words) apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
+          else apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
+          if (i == num*(half_words?1:1)-10) apb_write('h20, 32'h2);
+//          if (i == 10)  apb_write('h30, 32'h4);
 //          $display("%d%d",num,i);
+        if (pslverr) i--;
       end
 `else `ifdef CORE_ARCH_S32
       for (int i = 0; i < num; i++) begin
           apb_write('h140, padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
-          if (i == num-16) apb_write('h20, 32'h2);
+          if (i == num-10) apb_write('h20, 32'h2);
 //          $display("%d%d",num,i);
+        if (pslverr) i--;
       end
 `endif `endif
 
-      // 5. Wait for result (CRITICAL: Adjust!)
-      while (done[0] !== 1'b1) apb_read('h030,done);
+      // 5. Wait for result
+//      do apb_read('h030,done); while (done[3] === 1'b1);
+      do apb_read('h030,done); while (done[0] !== 1'b1);
 
       // 6. Read the hash result
       for (int i = 0; i < HASH_WIDTH / FIQSHA_BUS_DATA_WIDTH; i++) begin

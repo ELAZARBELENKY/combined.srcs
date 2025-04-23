@@ -23,7 +23,7 @@ module lw_sha_apb_top (
 	 irq_o,
 	// extensions
 `ifdef HMACAUXKEY
-   aux_key_i,
+  aux_key_i,
 `endif
    random_i,
   // DMA support
@@ -117,12 +117,8 @@ lw_sha_interface_control_logic #(
    .rd_i(con_rd),
    .rd_ack_i(con_rd_ack),
    .waddr_i(con_waddr),
-   .wtransaction_cnt_i('0),
    .raddr_i(con_raddr),
-   .rtransaction_cnt_i('0),
    .wdata_i(con_wdata),
-   .wbyte_enable_i('1),
-   .rbyte_enable_i('1),
    .rdata_o(con_rdata),
    .read_valid_o(con_read_valid),
 //   .read_ready_i('1),
@@ -157,7 +153,6 @@ lw_sha_interface_control_logic #(
    .slv_error_o(con_slv_error),
    .core_reset_o(core_reset)
 );
-logic key_valid_i = 1;
 
 lw_hmac u_lw_hmac_core (
    .clk_i(pclk),

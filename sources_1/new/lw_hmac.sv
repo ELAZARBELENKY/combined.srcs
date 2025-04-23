@@ -49,7 +49,7 @@ module lw_hmac ( input clk_i,
 `endif `endif
   logic [`WORD_SIZE-1:0] key_reg[15:0] = '{default: '0};
   logic [`WORD_SIZE-1:0] sha_output[7:0];
-  logic [`WORD_SIZE-1:0] inner_hashed[7:0] = '{default: '0};;
+  logic [`WORD_SIZE-1:0] inner_hashed[7:0] = '{default: '0};
   logic done_hash, hmac;
   logic inner_hash = 1'b0, fb = 1'b0;
   logic hash_ready;
