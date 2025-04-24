@@ -1,5 +1,5 @@
 //*
-//*  Copyright � 2024 FortifyIQ, Inc.
+//*  Copyright (C) 2024 FortifyIQ, Inc.
 //*
 //*  All Rights Reserved.
 //*
@@ -32,6 +32,7 @@ module lw_hmac ( input clk_i,
 `endif `endif
                  input [`WORD_SIZE-1:0] key_i,
                  input key_valid_i,
+                 input save_key,
                  output logic key_ready_o,
                  output logic [`WORD_SIZE-1:0] hash_o[7:0],
                  output logic ready_o ,
@@ -47,12 +48,13 @@ module lw_hmac ( input clk_i,
 `else `ifdef CORE_ARCH_S32
   logic mode = 1'b0;
 `endif `endif
-  logic [`WORD_SIZE-1:0] key_reg[15:0] = '{default: '0};
   logic [`WORD_SIZE-1:0] sha_output[7:0];
   logic [`WORD_SIZE-1:0] inner_hashed[7:0] = '{default: '0};
   logic done_hash, hmac;
   logic inner_hash = 1'b0, fb = 1'b0;
   logic hash_ready;
+  logic key_full = 1'b0;
+  logic key_saved;
   typedef enum logic [1:0] {not_active = 2'b00, sha_op = 2'b01, hmac_op = 2'b10} state;
   state ns, ps = not_active;
 
@@ -60,7 +62,11 @@ module lw_hmac ( input clk_i,
   logic [`WORD_SIZE-1:0] hmac_data;
 `ifdef VIASHIFT
   logic [`WORD_SIZE-1:0] key;
+  logic [`WORD_SIZE*16-1:0] key_reg = '0;
+`else
+  logic [`WORD_SIZE-1:0] key_reg[15:0] = '{default: '0};
 `endif
+
   lw_sha_main hashing ( .aresetn_i(aresetn_i),
                         .clk_i(clk_i),
                         .start_i(hmac_start||start_i),
@@ -75,18 +81,21 @@ module lw_hmac ( input clk_i,
                         .core_ready_o(),
                         .done_o(done_hash));
 //////////////////////////////////////////////////////////////////////////////////////////////
+  assign key_saved = key_full && save_key;
   assign fault_inj_det_o = 1'b0;
   assign hmac_last = inner_hash?last_i&&!fb:!fb;
-  assign hmac_data_valid = inner_hash && !done_hash ? (fb ? key_valid_i : data_valid_i) : 1'b1;
+  assign hmac_data_valid = inner_hash && !done_hash ? (fb ? key_valid_i || key_saved : data_valid_i) : 1'b1;
   assign hmac = ns == hmac_op;
 `ifdef CORE_ARCH_S64
   assign s64 = mode[2]||mode[1];
   always_comb begin
-    if (inner_hash) hmac_data = fb ? key_i ^ {16{8'h36}} : data_i;
+    if (inner_hash) begin
 `ifdef VIASHIFT
-    else if (fb) hmac_data = key^{16{8'h5c}}; 
+      hmac_data = fb ? (key_saved?key:key_i)^{16{8'h36}}:data_i;
+    end else if (fb) hmac_data = key^{16{8'h5c}}; 
 `else
-    else if (fb) hmac_data = key_reg[counter]^{16{8'h5c}};
+      hmac_data = fb ? (key_saved?key_reg[counter]:key_i)^{16{8'h36}}:data_i;
+    end else if (fb) hmac_data = key_reg[counter]^{16{8'h5c}};
 `endif
     else begin
       if (counter[3]) begin
@@ -101,11 +110,14 @@ module lw_hmac ( input clk_i,
     end
   end
 `else `ifdef CORE_ARCH_S32
-  assign hmac_data = inner_hash ? (fb?key_i^{8{8'h36}}:data_i):
 `ifdef VIASHIFT
-                      fb ? key^{8{8'h5c}}:
+  assign hmac_data = inner_hash ?
+                  (fb?(key_saved?key:key_i)^{8{8'h36}}:data_i):
+                  fb ? key^{8{8'h5c}}:
 `else
-                      fb ? key_reg[counter]^{8{8'h5c}}:
+  assign hmac_data = inner_hash ?
+                  (fb?(key_saved?key_reg[counter]:key_i)^{8{8'h36}}:data_i):
+                  fb ? key_reg[counter]^{8{8'h5c}}:
 `endif
                       counter == (mode?8:7) ? 32'h80000000:
                       counter==0 ? mode?32'h2e0:32'h300:
@@ -120,7 +132,7 @@ module lw_hmac ( input clk_i,
           key_ready_o = 0;
           ready_o = 0;
         end else begin
-          key_ready_o = inner_hash && fb;
+          key_ready_o = inner_hash && fb && !key_saved;
           ns = hmac_op;
           ready_o = !fb && !done_hash && inner_hash ? hash_ready : 1'b0;
         end
@@ -163,6 +175,7 @@ module lw_hmac ( input clk_i,
 
   always_ff @(posedge clk_i or negedge aresetn_i) begin
     if (!aresetn_i) begin
+      key_full <= 1'b0;
       core_ready_o <= 1'b0;
       ps <= not_active;
       fb <= 1'b0;
@@ -180,22 +193,39 @@ module lw_hmac ( input clk_i,
       if (ps == hmac_op && (hash_ready || fb && inner_hash)) begin
         if (inner_hash) begin
           hmac_start <= 1'b1;
-          if(key_valid_i) begin
+          if (key_saved && fb) begin
+`ifdef VIASHIFT
+            key <= key_reg[`WORD_SIZE-1:0];
+            key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
+`endif
             if (counter == 4'b0) begin
               fb <= 1'b0;
-            end else begin
-              counter <= counter - 1;
+              counter <= 4'hf;
+            end else counter <= counter - 1;
+          end else if (!fb) key_full <= 1'b1;
+          else if (key_valid_i) begin
+            if (counter == 4'b0) fb <= 1'b0;
+            else counter <= counter - 1;
+            if (fb) begin
+`ifdef VIASHIFT
+              key_reg <= {key_i,key_reg[`WORD_SIZE*16-1:`WORD_SIZE]};
+`else
+              key_reg[counter] <= key_i;
+`endif
             end
           end
 `ifdef VIASHIFT
-          if (fb&&key_valid_i) key_reg <= {key_i,key_reg[15:1]};
-`else
-          if (fb) key_reg[counter] <= key_i;
+          if (!fb && !key_full) begin
+            key <= key_reg[`WORD_SIZE-1:0];
+            key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
+          end
 `endif
           if (done_hash) begin
 `ifdef VIASHIFT
-            key <= key_reg[0];
-            key_reg <= {'0,key_reg[15:1]};
+            if (!key_saved) begin
+              key <= key_reg[`WORD_SIZE-1:0];
+              key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
+            end
 `endif
             inner_hash <= 1'b0;
             inner_hashed <= sha_output;
@@ -205,15 +235,16 @@ module lw_hmac ( input clk_i,
         end else begin
           if (counter == 4'b0) begin
             fb <= 1'b0;
-            key_reg <= '{default: '0};
+            if (!save_key) key_reg <= '{default: '0};
           end
+`ifdef VIASHIFT
+          else if (fb || done_hash) begin
+            key <= key_reg[`WORD_SIZE-1:0];
+            key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
+          end
+`endif
           hmac_start <= 1'b0;
           counter <= counter - 1;
-`ifdef VIASHIFT
-          if (counter == 4'b0) key <= '0;
-          key <= key_reg[0];
-          key_reg <= {'0,key_reg[15:1]};
-`endif
           if (done_hash && !abort_i) begin
             hash_o <= sha_output;
             done_o <= 1'b1;
@@ -223,6 +254,13 @@ module lw_hmac ( input clk_i,
         hmac_start <= 1'b0;
         inner_hash <= 1'b1;
         fb <= 1'b1;
+`ifdef VIASHIFT
+        if (fb && counter!='hf) begin
+          key_reg <= key_reg >> `WORD_SIZE*(counter+1)|
+          key_reg << (`WORD_SIZE*16-`WORD_SIZE*(counter+1));
+          key <= key_reg[`WORD_SIZE*(counter+1)-1-:`WORD_SIZE];
+        end
+`endif
         counter <= 4'hf;
         done_o <= 1'b0;
         mode <= opcode_i;

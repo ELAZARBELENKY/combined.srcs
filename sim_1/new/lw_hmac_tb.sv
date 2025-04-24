@@ -41,7 +41,7 @@ module lw_hmac_tb;
   logic ready_o;
   logic core_ready_o;
   logic done_o;
-  
+  logic save_key = 1'b0;
   logic hmac_mode;
   logic [25:0] j = 0;
   logic [511:0]compression;
@@ -70,7 +70,8 @@ module lw_hmac_tb;
       .done_o(done_o),
       .key_valid_i(key_valid_i),
       .key_ready_o(key_ready_o),
-      .key_i(key_i)
+      .key_i(key_i),
+      .save_key(save_key)
       );
   initial begin
     clk_i = 0;
@@ -82,7 +83,7 @@ module lw_hmac_tb;
     int unsigned data_delay = 0, key_delay = 0;
     j = 0;
     while (core_ready_o != 1) @(posedge clk_i);
-    if (hmac_mode) begin
+    if (hmac_mode && (t == test_1 && m == HMAC_256 || !save_key)) begin
       do begin #1;
         start_i = j == 0;
         if (j != 0) opcode_i = 0;
@@ -100,11 +101,18 @@ module lw_hmac_tb;
     end
     
     do begin
-      start_i = j == 0 && !hmac_mode;
+      start_i = j == 0;
       if (j != 0) opcode_i = 0;
       data_valid_i = 1'b1;
       data_i = data[j];
       last_i = j == block_amount*16-1;
+      if (m == HMAC_224 && t == test_2) begin
+      #50
+        abort_i <= 1;
+        #10
+        abort_i <= 0;
+        return;
+      end
       @(posedge clk_i);
       if (data_valid_i && ready_o) j++;
       delay(1, data_delay);
