@@ -9,9 +9,6 @@
   localparam DIN_ADDR  = 12'h140;
   localparam KEY_ADDR  = 12'h150;
   localparam SEED_ADDR = 12'h300;
-//`ifndef FIQSHA_PRNG_INIT
-//`define FIQSHA_PRNG_INIT "SW"
-//`endif
 
 module lw_sha_interface_control_logic #(
    parameter int FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS,
@@ -108,22 +105,6 @@ module lw_sha_interface_control_logic #(
             if (ready_i) begin
 `ifdef CORE_ARCH_S64
               if (`FIQSHA_BUS == 32 && s64) begin
-//                if (first_word) begin
-////                  din_reg[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << `FIQSHA_BUS;
-//                  for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
-//                    if (wbyte_enable_i[i]) begin
-//                      din_reg[`WORD_SIZE + i*8+:8] = wdata_i[(i*8)+:8];
-//                    end
-//                  end
-//                end
-//                else begin
-////                  din_reg[`WORD_SIZE/2-1:0] <= wdata_i;
-//                  for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
-//                    if (wbyte_enable_i[i]) begin
-//                      din_reg[i*8+:8] = wdata_i[(i*8)+:8];
-//                    end
-//                  end
-//                end
                 for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
                   if (wbyte_enable_i[i]) begin
                     din_reg[i*8+(first_word?FIQSHA_BUS_DATA_WIDTH:0)+:8] = wdata_i[(i*8)+:8];
@@ -159,8 +140,6 @@ module lw_sha_interface_control_logic #(
             if (key_ready_i) begin
 `ifdef CORE_ARCH_S64
               if (`FIQSHA_BUS == 32 && s64) begin
-//                if (first_word) key_o[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << 32;
-//                else key_o[`WORD_SIZE/2-1:0] <= wdata_i;
                 for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
                   if (wbyte_enable_i[i]) begin
                     key_o[i*8+(first_word?FIQSHA_BUS_DATA_WIDTH:0)+:8] = wdata_i[(i*8)+:8];
