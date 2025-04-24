@@ -75,8 +75,7 @@ module lw_sha_interface_control_logic #(
     if (~resetn_i) begin
       cfg_reg <= '0;
       ctl_reg <= '0;
-      sts_reg[2] <= 1'b0;
-      sts_reg[5] <= 1'b0;
+      sts_reg[3] <= 1'b0;
       ie_reg <= 32'h2;
       seed_reg <= '0;
     end else begin
@@ -95,8 +94,7 @@ module lw_sha_interface_control_logic #(
             valid_o <= wr_i&& wdata_i[0]; //&& (core_ready_i);
           end
           STS_ADDR: begin
-            if (wdata_i[5]) sts_reg[5] <= 1'b0;
-            if (wdata_i[2]) sts_reg[2] <= 1'b0;
+            if (wdata_i[3]) sts_reg[3] <= 1'b0;
           end
           IE_ADDR: begin
             ie_reg <= {27'h0, wdata_i[4:0]};
@@ -118,7 +116,7 @@ module lw_sha_interface_control_logic #(
               valid_o <= 1'b1;
 `endif `endif
             end else begin
-              sts_reg[2] <= 1'b1;
+              sts_reg[3] <= 1'b1;
               slv_error_o <= 1'b1;
             end
           end
@@ -140,7 +138,7 @@ module lw_sha_interface_control_logic #(
               key_valid_o <= 1'b1;
 `endif `endif
             end else begin
-              sts_reg[2] <= 1'b1;
+              sts_reg[3] <= 1'b1;
               slv_error_o <= 1'b1;
             end
           end
@@ -186,10 +184,11 @@ module lw_sha_interface_control_logic #(
         STS_ADDR: rdata_o <= sts_reg;
         IE_ADDR: rdata_o <= ie_reg;
         default:
-          if (raddr_i[11:$clog2(HASH_SIZE/8)] === HASH_ADDR[11:$clog2(HASH_SIZE/8)]) begin
+          if (raddr_i[11:$clog2(`WORD_SIZE)] === HASH_ADDR[11:$clog2(`WORD_SIZE)]) begin
             for (int i = 0; i < HASH_SIZE/FIQSHA_BUS_DATA_WIDTH; i++) begin
               if (i === hash_reg_word_rptr)
                 rdata_o = hash_reg[i*FIQSHA_BUS_DATA_WIDTH +: FIQSHA_BUS_DATA_WIDTH];
+//              if (i == HASH_SIZE/FIQSHA_BUS_DATA_WIDTH - 1) hash_avliable <= 1'b0;
             end
           end
       endcase
@@ -215,20 +214,22 @@ module lw_sha_interface_control_logic #(
   } ctl_t;
 
   typedef struct {
-    logic keyunlocked;
     logic faultinjdet;
     logic busy;
     logic derr;
-    logic rdy;
+`ifndef HMACAUXKEY
+    logic rdyk;
+`endif
+    logic rdyd;
     logic avl;
   } sts_t;
 
   typedef struct {
-    logic keyunlockedie;
     logic faultinjdetie;
     logic busyie;
     logic derrie;
-    logic rdyie;
+    logic rdykie;
+    logic rdydie;
     logic avlie;
   } ie_t;
 
@@ -265,26 +266,27 @@ module lw_sha_interface_control_logic #(
            last: ctl_reg[1],
            init: ctl_reg[0]};
 
-    
-    sts = '{keyunlocked: sts_reg[5],
-           faultinjdet: sts_reg[4],
-           busy: sts_reg[3],
-           derr: sts_reg[2],
-           rdy: sts_reg[1],
+    sts = '{faultinjdet: sts_reg[5],
+           busy: sts_reg[4],
+           derr: sts_reg[3],
+`ifndef HMACAUXKEY
+           rdyk: sts_reg[2],
+`endif
+           rdyd: sts_reg[1],
            avl: sts_reg[0]};
 
-    ie = '{keyunlockedie: ie_reg[5],
-           faultinjdetie: ie_reg[4],
-           busyie: ie_reg[3],
-           derrie: ie_reg[2],
-           rdyie: ie_reg[1],
+    ie = '{faultinjdetie: ie_reg[5],
+           busyie: ie_reg[4],
+           derrie: ie_reg[3],
+           rdykie: ie_reg[2],
+           rdydie: ie_reg[1],
            avlie: ie_reg[0]};
   end
 
   assign hash_reg = {hash_i[7],hash_i[6],hash_i[5],hash_i[4],
                      hash_i[3],hash_i[2],hash_i[1],hash_i[0]};
-  assign sts_reg[4:3] = {fault_inj_det_i, !core_ready_i};
-  assign sts_reg[1:0] = {ready_i || key_ready_i, done_i || hash_avliable};
+  assign sts_reg[5:4] = {fault_inj_det_i, !core_ready_i};
+  assign sts_reg[1:0] = {ready_i, done_i || hash_avliable};
   assign sts_reg[31:5] = '0;
   assign start_o = ctl.init;
   assign last_o = ctl.last;
@@ -292,8 +294,15 @@ module lw_sha_interface_control_logic #(
   assign opcode_o = cfg.opcode;
   assign data_o = din_reg;
   assign core_reset_o = !cfg.srst;
-  assign dma_wr_req_o = sts.rdy;
+  assign dma_wr_req_o = sts.rdyd;
   assign dma_rd_req_o = sts.avl;
+`ifndef HMACAUXKEY
+  assign dma_wr_req_o = dma_wr_req_o || sts.rdyk;
+  assign sts_reg[2] = key_ready_i;
+`else
+  assign sts_reg[2] = 1'b0;
+`endif
+
 `ifdef CORE_ARCH_S64
   assign s64 = cfg.opcode[2]||cfg.opcode[1];
 `else `ifdef CORE_ARCH_S32
@@ -303,7 +312,10 @@ module lw_sha_interface_control_logic #(
      (sts.faultinjdet & ie.faultinjdetie) |
      (sts.busy & ie.busyie) |
      (sts.derr & ie.derrie) |
-     (sts.rdy & ie.rdyie) |
+`ifndef HMACAUXKEY
+     (sts.rdyk & ie.rdykie) |
+`endif
+     (sts.rdyd & ie.rdydie) |
      (sts.avl & ie.avlie);
 
 `ifdef HMACAUXKEY
