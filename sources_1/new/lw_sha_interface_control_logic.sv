@@ -31,7 +31,7 @@ module lw_sha_interface_control_logic #(
    input [FIQSHA_BUS_DATA_WIDTH-1:0] wdata_i,         // write data
    output reg [FIQSHA_BUS_DATA_WIDTH-1:0] rdata_o,    // read data
    output reg read_valid_o,                           // read data validation strob
-//   input read_ready_i,                                // ready for read from a bus interface adapter
+   input [FIQSHA_BUS_DATA_WIDTH/8-1:0] wbyte_enable_i,                                // ready for read from a bus interface adapter
 `ifdef HMACAUXKEY
    input [`KEY_SIZE-1:0] aux_key_i, // dedicated key port to protected secret input instead bus transaction.
 `endif
@@ -87,32 +87,66 @@ module lw_sha_interface_control_logic #(
 `endif
         case (waddr_i)
           CFG_ADDR: begin
-            cfg_reg <= {wdata_i[31], 18'h0, wdata_i[12:8], 4'b0, wdata_i[3:0]};
+            for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
+              if (wbyte_enable_i[i]) cfg_reg[(i*8)+:8] = wdata_i[(i*8)+:8];
+            end
+//            cfg_reg <= {wdata_i[31], 18'h0, wdata_i[12:8], 4'b0, wdata_i[3:0]};
           end
           CTL_ADDR: begin
-            ctl_reg[31:0] <= {29'h0, wdata_i[2:0]};
-            valid_o <= wr_i&& wdata_i[0]; //&& (core_ready_i);
+            if (wbyte_enable_i[0]) begin
+              ctl_reg[31:0] <= {29'h0, wdata_i[2:0]};
+              valid_o <= wdata_i[0] && (core_ready_i);
+            end
           end
           STS_ADDR: begin
-            if (wdata_i[3]) sts_reg[3] <= 1'b0;
+            if (wdata_i[3] && wbyte_enable_i[0]) sts_reg[3] <= 1'b0;
           end
           IE_ADDR: begin
-            ie_reg <= {27'h0, wdata_i[4:0]};
+            if (wbyte_enable_i[0]) ie_reg <= {27'h0, wdata_i[4:0]};
           end
           DIN_ADDR: begin
             if (ready_i) begin
 `ifdef CORE_ARCH_S64
               if (`FIQSHA_BUS == 32 && s64) begin
-                if (first_word) din_reg[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << 32;
-                else din_reg[`WORD_SIZE/2-1:0] <= wdata_i;
+//                if (first_word) begin
+////                  din_reg[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << `FIQSHA_BUS;
+//                  for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
+//                    if (wbyte_enable_i[i]) begin
+//                      din_reg[`WORD_SIZE + i*8+:8] = wdata_i[(i*8)+:8];
+//                    end
+//                  end
+//                end
+//                else begin
+////                  din_reg[`WORD_SIZE/2-1:0] <= wdata_i;
+//                  for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
+//                    if (wbyte_enable_i[i]) begin
+//                      din_reg[i*8+:8] = wdata_i[(i*8)+:8];
+//                    end
+//                  end
+//                end
+                for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
+                  if (wbyte_enable_i[i]) begin
+                    din_reg[i*8+(first_word?FIQSHA_BUS_DATA_WIDTH:0)+:8] = wdata_i[(i*8)+:8];
+                  end
+                end
                 valid_o <= !first_word;
                 first_word <= !first_word;
               end else begin
-                din_reg <= wdata_i;
+//                din_reg <= wdata_i;
+                for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
+                  if (wbyte_enable_i[i]) begin
+                    din_reg[i*8+:8] = wdata_i[(i*8)+:8];
+                  end
+                end
                 valid_o <= 1'b1;
               end
 `else `ifdef CORE_ARCH_S32
-              din_reg <= wdata_i;
+//              din_reg <= wdata_i;
+              for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
+                if (wbyte_enable_i[i]) begin
+                  din_reg[i*8+:8] = wdata_i[(i*8)+:8];
+                end
+              end
               valid_o <= 1'b1;
 `endif `endif
             end else begin
@@ -125,16 +159,30 @@ module lw_sha_interface_control_logic #(
             if (key_ready_i) begin
 `ifdef CORE_ARCH_S64
               if (`FIQSHA_BUS == 32 && s64) begin
-                if (first_word) key_o[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << 32;
-                else key_o[`WORD_SIZE/2-1:0] <= wdata_i;
+//                if (first_word) key_o[`WORD_SIZE-1-:`WORD_SIZE] <= wdata_i << 32;
+//                else key_o[`WORD_SIZE/2-1:0] <= wdata_i;
+                for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
+                  if (wbyte_enable_i[i]) begin
+                    key_o[i*8+(first_word?FIQSHA_BUS_DATA_WIDTH:0)+:8] = wdata_i[(i*8)+:8];
+                  end
+                end
                 key_valid_o <= !first_word;
                 first_word <= !first_word;
               end else begin
-                key_o <= wdata_i;
+                for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
+                  if (wbyte_enable_i[i]) begin
+                    key_o[i*8+:8] = wdata_i[(i*8)+:8];
+                  end
+                end
                 key_valid_o <= 1'b1;
               end
 `else `ifdef CORE_ARCH_S32
-              key_o <= wdata_i;
+//              key_o <= wdata_i;
+              for (int i = 0; i < FIQSHA_BUS_DATA_WIDTH/8; i++) begin
+                if (wbyte_enable_i[i]) begin
+                  key_o[i*8+:8] = wdata_i[(i*8)+:8];
+                end
+              end
               key_valid_o <= 1'b1;
 `endif `endif
             end else begin
@@ -145,7 +193,7 @@ module lw_sha_interface_control_logic #(
 `endif
           default:;
         endcase
-        if (cfg_reg[31]) begin
+        if (cfg_reg[31] && wbyte_enable_i[FIQSHA_BUS_DATA_WIDTH/8-1]) begin
           cfg_reg <= '0;
           ctl_reg <= '0;
           sts_reg <= 32'h2;
@@ -169,7 +217,7 @@ module lw_sha_interface_control_logic #(
     raddr_i[$clog2(HASH_SIZE/8)-1:$clog2(FIQSHA_BUS_DATA_WIDTH/8)];
   
   always_ff @(posedge clk_i or negedge resetn_i) begin
-    if (!resetn_i) hash_avliable <= 1'b0;
+    if (!resetn_i || start_o) hash_avliable <= 1'b0;
     else if (done_i) hash_avliable <= 1'b1;
   end
 
@@ -188,7 +236,6 @@ module lw_sha_interface_control_logic #(
             for (int i = 0; i < HASH_SIZE/FIQSHA_BUS_DATA_WIDTH; i++) begin
               if (i === hash_reg_word_rptr)
                 rdata_o = hash_reg[i*FIQSHA_BUS_DATA_WIDTH +: FIQSHA_BUS_DATA_WIDTH];
-//              if (i == HASH_SIZE/FIQSHA_BUS_DATA_WIDTH - 1) hash_avliable <= 1'b0;
             end
           end
       endcase
@@ -228,7 +275,9 @@ module lw_sha_interface_control_logic #(
     logic faultinjdetie;
     logic busyie;
     logic derrie;
+`ifndef HMACAUXKEY
     logic rdykie;
+`endif
     logic rdydie;
     logic avlie;
   } ie_t;
@@ -241,17 +290,13 @@ module lw_sha_interface_control_logic #(
   typedef struct {
     logic [ARCH_SZ*8-1:0] statesh [3];
   } state_t;
-
-//  typedef struct {
-//    logic [(`FIQSHA_PRNG_INIT == "SW" ? 31 : 0) : 0] seed;
-//  } seed_t;
   
   id_t id;
   cfg_t cfg;
   ctl_t ctl;
   sts_t sts;
   ie_t ie;
-//  seed_t seed;
+
   always_comb begin
     id = '{majorid: id_reg[31:16],
            minorid: id_reg[15:0]};
@@ -278,7 +323,9 @@ module lw_sha_interface_control_logic #(
     ie = '{faultinjdetie: ie_reg[5],
            busyie: ie_reg[4],
            derrie: ie_reg[3],
+`ifndef HMACAUXKEY
            rdykie: ie_reg[2],
+`endif
            rdydie: ie_reg[1],
            avlie: ie_reg[0]};
   end

@@ -18,6 +18,7 @@ localparam [31:0] sha_kind = 'ha;
   reg pwrite;
   reg [ADDR_WIDTH-1:0] paddr;
   reg [FIQSHA_BUS_DATA_WIDTH-1:0] pwdata;
+  reg [FIQSHA_BUS_DATA_WIDTH/8-1:0] pstrb = 'hf;
   wire pready;
   wire [FIQSHA_BUS_DATA_WIDTH-1:0] prdata;
   wire pslverr;
@@ -39,6 +40,7 @@ localparam [31:0] sha_kind = 'ha;
     .penable(penable),
     .pwrite(pwrite),
     .pwdata(pwdata),
+    .pstrb(pstrb),
     .pready(pready),
     .prdata(prdata),
     .pslverr(pslverr),
@@ -190,7 +192,7 @@ endtask
       for (int i = 0; i < num*(half_words&&s64?2:1); i++) begin
           if (half_words) apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
           else apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
-          if (i == num*(half_words?1:1)-10) apb_write('h20, 32'h2);
+          if (i == num*(half_words&&s64?2:1)-10) apb_write('h20, 32'h2);
 //          if (i == 10)  apb_write('h30, 32'h4);
 //          $display("%d%d",num,i);
         if (pslverr) i--;
@@ -205,7 +207,7 @@ endtask
 `endif `endif
 
       // 5. Wait for result
-//      do apb_read('h030,done); while (done[3] === 1'b1);
+//      do apb_read('h030,done); while (done[4] === 1'b1);
       do apb_read('h030,done); while (done[0] !== 1'b1);
 
       // 6. Read the hash result

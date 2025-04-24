@@ -16,6 +16,7 @@ module lw_sha_apb_top (
 	 penable,
 	 pwrite,
 	 pwdata,
+	 pstrb,
 	 pready,
 	 prdata,
 	 pslverr,
@@ -43,6 +44,7 @@ module lw_sha_apb_top (
   input penable;
   input pwrite;
   input [FIQSHA_BUS_DATA_WIDTH-1:0] pwdata;
+  input [FIQSHA_BUS_DATA_WIDTH/8-1:0] pstrb;
   output pready;
   output [FIQSHA_BUS_DATA_WIDTH-1:0] prdata;
   output pslverr;
@@ -62,6 +64,8 @@ logic [`WORD_SIZE-1:0] key;
 logic con_wr, con_wr_ack, con_rd, con_rd_ack, con_read_valid, con_slv_error;
 logic [11:0] con_waddr, con_raddr;
 logic [FIQSHA_BUS_DATA_WIDTH-1:0] con_wdata, con_rdata;
+logic [FIQSHA_BUS_DATA_WIDTH/8-1:0] con_wbyte_enable;
+
 
  apb_slave_adapter
  #(
@@ -75,7 +79,7 @@ logic [FIQSHA_BUS_DATA_WIDTH-1:0] con_wdata, con_rdata;
    .penable(penable),
    .pwrite(pwrite),
    .pwdata(pwdata),
-   .pstrb('1),
+   .pstrb(pstrb),
    .pready(pready),
    .prdata(prdata),
    .pslverr(pslverr),
@@ -87,7 +91,7 @@ logic [FIQSHA_BUS_DATA_WIDTH-1:0] con_wdata, con_rdata;
    .con_waddr(con_waddr),
    .con_raddr(con_raddr),
    .con_wdata(con_wdata),
-   .con_wbyte_enable(),
+   .con_wbyte_enable(con_wbyte_enable),
    .con_rbyte_enable(),
    .con_rdata(con_rdata),
    .con_read_valid(con_read_valid),
@@ -127,6 +131,7 @@ lw_sha_interface_control_logic #(
 `endif
 //   .wstuck_i('0),
 //   .rstuck_i('0),
+   .wbyte_enable_i(con_wbyte_enable),
    .burst_type_i('0),
 //   .new_write_transaction_i('0),
 //   .wtransaction_active_i('0),
