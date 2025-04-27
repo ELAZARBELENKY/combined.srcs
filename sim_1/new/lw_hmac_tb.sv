@@ -41,7 +41,7 @@ module lw_hmac_tb;
   logic ready_o;
   logic core_ready_o;
   logic done_o;
-  logic save_key = 1'b0;
+  logic new_key_i = 1'b0;
   logic hmac_mode;
   logic [25:0] j = 0;
   logic [511:0]compression;
@@ -71,7 +71,7 @@ module lw_hmac_tb;
       .key_valid_i(key_valid_i),
       .key_ready_o(key_ready_o),
       .key_i(key_i),
-      .save_key(save_key)
+      .new_key_i(new_key_i)
       );
   initial begin
     clk_i = 0;
@@ -83,7 +83,7 @@ module lw_hmac_tb;
     int unsigned data_delay = 0, key_delay = 0;
     j = 0;
     while (core_ready_o != 1) @(posedge clk_i);
-    if (hmac_mode && (t == test_1 && m == HMAC_256 || !save_key)) begin
+    if (hmac_mode && (t == test_1 && m == HMAC_256 || new_key_i)) begin
       do begin #1;
         start_i = j == 0;
         if (j != 0) opcode_i = 0;
@@ -106,13 +106,6 @@ module lw_hmac_tb;
       data_valid_i = 1'b1;
       data_i = data[j];
       last_i = j == block_amount*16-1;
-      if (m == HMAC_224 && t == test_2) begin
-      #50
-        abort_i <= 1;
-        #10
-        abort_i <= 0;
-        return;
-      end
       @(posedge clk_i);
       if (data_valid_i && ready_o) j++;
       delay(1, data_delay);
@@ -123,6 +116,7 @@ module lw_hmac_tb;
       j = 0;
     end
     #1 wait (core_ready_o);
+    if (abort_i) return;
     display_output();
     #100;
   endtask
@@ -142,7 +136,7 @@ module lw_hmac_tb;
       @(posedge clk_i);
     end
   endtask
-  
+
   `ifdef CORE_ARCH_S64
   assign hmac_mode = opcode_i[3];
   task automatic display_output();
@@ -856,6 +850,21 @@ module lw_hmac_tb;
     running_tests(1);
     running_tests(2);
     running_tests(3);
+//    $finish;
   end
 `endif `endif
+initial begin
+  wait (m == HMAC_224 && t == test_2) begin
+  #1430;
+    abort_i <= 1;
+//    aresetn_i <= 0;
+//    new_key_i <= 1;
+        assigning_simple_key();
+    #10
+    abort_i <= 0;
+//    aresetn_i <= 1;
+    #200
+    new_key_i <= 0;
+  end
+end
 endmodule

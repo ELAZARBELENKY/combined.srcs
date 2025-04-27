@@ -172,6 +172,7 @@ lw_hmac u_lw_hmac_core (
    .ready_o(ready),
    .opcode_i(opcode),
    .data_i(data),
+   .new_key_i(1'b0),
    .random_i(random_i),
    .hash_o(hash),
    .core_ready_o(core_ready),

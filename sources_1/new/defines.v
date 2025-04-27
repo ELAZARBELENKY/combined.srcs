@@ -22,7 +22,7 @@
 `endif
 
 `ifndef HMACAUXKEY
-  `define HMACAUXKEY;
+//  `define HMACAUXKEY;
 `endif
 
 `ifndef FIQSHA_BUS

@@ -118,7 +118,7 @@ task apb_read;
 endtask
 
   // SHA-256 Test Case (Precise, with Padding)
-  task automatic sha256_test;
+  task automatic sha256_test (input new_key);
   logic half_words;
     //input [FIQSHA_BUS_DATA_WIDTH - 1:0] test_data;
     begin
@@ -165,7 +165,8 @@ endtask
       // 2. Configure for OPCODE and strating operation
       apb_write('h10, sha_kind); // OPCODE = sha_kind
       apb_write('h20, 32'h1);  // CTL.INIT = 1
-
+    
+    if (new_key) begin
 `ifdef CORE_ARCH_S64 `ifndef HMACAUXKEY
       // 3. Send KEY (Padded - 512 bits)
       half_words = (`FIQSHA_BUS == 32 && s64)|| !s64;
@@ -185,6 +186,7 @@ endtask
         if (pslverr) i--;
       end
 `endif `endif `endif 
+    end
 
       // 4. Send Data (Padded - 512 bits)
 `ifdef CORE_ARCH_S64
@@ -244,8 +246,9 @@ endtask
     presetn = 1;
     repeat(5) @(posedge pclk); // Wait after reset
 
-    sha256_test(); // No input argument
+    sha256_test(1); // No input argument
     repeat(200) @(posedge pclk);
+    sha256_test(0); // No input argument
   end
   always @(posedge pclk) random_i <= $random % 4;
 endmodule

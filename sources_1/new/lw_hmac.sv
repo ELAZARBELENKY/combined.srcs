@@ -32,14 +32,13 @@ module lw_hmac ( input clk_i,
 `endif `endif
                  input [`WORD_SIZE-1:0] key_i,
                  input key_valid_i,
-                 input save_key,
+                 input new_key_i,
                  output logic key_ready_o,
                  output logic [`WORD_SIZE-1:0] hash_o[7:0],
                  output logic ready_o ,
                  output logic core_ready_o,
                  output logic done_o,
                  output logic fault_inj_det_o);
-
 
   logic [3:0] counter = 4'b0;
 `ifdef CORE_ARCH_S64
@@ -55,6 +54,7 @@ module lw_hmac ( input clk_i,
   logic hash_ready;
   logic key_full = 1'b0;
   logic key_saved;
+  logic new_key;
   typedef enum logic [1:0] {not_active = 2'b00, sha_op = 2'b01, hmac_op = 2'b10} state;
   state ns, ps = not_active;
 
@@ -81,7 +81,7 @@ module lw_hmac ( input clk_i,
                         .core_ready_o(),
                         .done_o(done_hash));
 //////////////////////////////////////////////////////////////////////////////////////////////
-  assign key_saved = key_full && save_key;
+  assign key_saved = key_full && !new_key;
   assign fault_inj_det_o = 1'b0;
   assign hmac_last = inner_hash?last_i&&!fb:!fb;
   assign hmac_data_valid = inner_hash && !done_hash ? (fb ? key_valid_i || key_saved : data_valid_i) : 1'b1;
@@ -172,7 +172,9 @@ module lw_hmac ( input clk_i,
       end
     endcase
   end
-
+  `ifdef VIASHIFT
+  assign key = key_reg[`WORD_SIZE-1:0];
+  `endif
   always_ff @(posedge clk_i or negedge aresetn_i) begin
     if (!aresetn_i) begin
       key_full <= 1'b0;
@@ -195,17 +197,20 @@ module lw_hmac ( input clk_i,
           hmac_start <= 1'b1;
           if (key_saved && fb) begin
 `ifdef VIASHIFT
-            key <= key_reg[`WORD_SIZE-1:0];
             key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
 `endif
             if (counter == 4'b0) begin
               fb <= 1'b0;
               counter <= 4'hf;
-            end else counter <= counter - 1;
+            end else begin 
+              counter <= counter - 1;
+            end
           end else if (!fb) key_full <= 1'b1;
           else if (key_valid_i) begin
-            if (counter == 4'b0) fb <= 1'b0;
-            else counter <= counter - 1;
+            if (counter == 4'b0) begin
+              fb <= 1'b0;
+              counter <= 4'hf;
+            end else counter <= counter - 1;
             if (fb) begin
 `ifdef VIASHIFT
               key_reg <= {key_i,key_reg[`WORD_SIZE*16-1:`WORD_SIZE]};
@@ -214,32 +219,18 @@ module lw_hmac ( input clk_i,
 `endif
             end
           end
-`ifdef VIASHIFT
-          if (!fb && !key_full) begin
-            key <= key_reg[`WORD_SIZE-1:0];
-            key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
-          end
-`endif
           if (done_hash) begin
-`ifdef VIASHIFT
-            if (!key_saved) begin
-              key <= key_reg[`WORD_SIZE-1:0];
-              key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
-            end
-`endif
             inner_hash <= 1'b0;
             inner_hashed <= sha_output;
             fb <= 1'b1;
-            counter <= 4'hf;
           end
         end else begin
           if (counter == 4'b0) begin
             fb <= 1'b0;
-            if (!save_key) key_reg <= '{default: '0};
+//            if (!save_key) key_reg <= '{default: '0};
           end
 `ifdef VIASHIFT
-          else if (fb || done_hash) begin
-            key <= key_reg[`WORD_SIZE-1:0];
+         if (fb) begin
             key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
           end
 `endif
@@ -256,14 +247,13 @@ module lw_hmac ( input clk_i,
         fb <= 1'b1;
 `ifdef VIASHIFT
         if (fb && counter!='hf) begin
-          key_reg <= key_reg >> `WORD_SIZE*(counter+1)|
-          key_reg << (`WORD_SIZE*16-`WORD_SIZE*(counter+1));
-          key <= key_reg[`WORD_SIZE*(counter+1)-1-:`WORD_SIZE];
+          key_reg <= key_reg >> `WORD_SIZE*(counter+1)|key_reg << (`WORD_SIZE*(15-counter));
         end
 `endif
         counter <= 4'hf;
         done_o <= 1'b0;
         mode <= opcode_i;
+        new_key <= new_key_i;
 `ifdef CORE_ARCH_S64
         if (opcode_i [2:1] == 2'b11) ps <= not_active;
 `endif
