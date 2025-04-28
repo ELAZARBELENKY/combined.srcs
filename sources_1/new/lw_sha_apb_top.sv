@@ -64,7 +64,6 @@ logic [`WORD_SIZE-1:0] key;
 logic con_wr, con_wr_ack, con_rd, con_rd_ack, con_read_valid, con_slv_error;
 logic [11:0] con_waddr, con_raddr;
 logic [FIQSHA_BUS_DATA_WIDTH-1:0] con_wdata, con_rdata;
-logic [FIQSHA_BUS_DATA_WIDTH/8-1:0] con_wbyte_enable;
 
 
  apb_slave_adapter
@@ -91,7 +90,7 @@ logic [FIQSHA_BUS_DATA_WIDTH/8-1:0] con_wbyte_enable;
    .con_waddr(con_waddr),
    .con_raddr(con_raddr),
    .con_wdata(con_wdata),
-   .con_wbyte_enable(con_wbyte_enable),
+   .con_wbyte_enable(),
    .con_rbyte_enable(),
    .con_rdata(con_rdata),
    .con_read_valid(con_read_valid),
@@ -100,10 +99,10 @@ logic [FIQSHA_BUS_DATA_WIDTH/8-1:0] con_wbyte_enable;
 
 logic start, abort, last, valid, ready, fault_inj_det, core_ready, done;
 logic [3:0] opcode;
-logic [DATA_WIDTH*8-1:0] state, state_share2, state_share3;
 logic [DATA_WIDTH-1:0] data;
 logic [DATA_WIDTH-1:0] hash[7:0];
 logic core_reset;
+logic new_key;
 
 lw_sha_interface_control_logic #(
    .FIQSHA_BUS_DATA_WIDTH(FIQSHA_BUS_DATA_WIDTH),
@@ -131,7 +130,6 @@ lw_sha_interface_control_logic #(
 `endif
 //   .wstuck_i('0),
 //   .rstuck_i('0),
-   .wbyte_enable_i(con_wbyte_enable),
    .burst_type_i('0),
 //   .new_write_transaction_i('0),
 //   .wtransaction_active_i('0),
@@ -150,6 +148,7 @@ lw_sha_interface_control_logic #(
    .hash_i(hash),
    .valid_o(valid),
    .ready_i(ready),
+   .new_key_o(new_key),
    .core_ready_i(core_ready),
    .done_i(done),
    .fault_inj_det_i(fault_inj_det),
@@ -172,7 +171,7 @@ lw_hmac u_lw_hmac_core (
    .ready_o(ready),
    .opcode_i(opcode),
    .data_i(data),
-   .new_key_i(1'b0),
+   .new_key_i(new_key),
    .random_i(random_i),
    .hash_o(hash),
    .core_ready_o(core_ready),

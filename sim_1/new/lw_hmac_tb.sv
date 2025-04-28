@@ -83,7 +83,7 @@ module lw_hmac_tb;
     int unsigned data_delay = 0, key_delay = 0;
     j = 0;
     while (core_ready_o != 1) @(posedge clk_i);
-    if (hmac_mode && (t == test_1 && m == HMAC_256 || new_key_i)) begin
+    if (hmac_mode && (/*t == test_1 && m == HMAC_256 ||*/ new_key_i)) begin
       do begin #1;
         start_i = j == 0;
         if (j != 0) opcode_i = 0;
@@ -854,12 +854,12 @@ module lw_hmac_tb;
   end
 `endif `endif
 initial begin
-  wait (m == HMAC_224 && t == test_2) begin
-  #1430;
-    abort_i <= 1;
+  wait (m == HMAC_256 && t == test_1) begin
+//  #1430;
+//    abort_i <= 1;
 //    aresetn_i <= 0;
-//    new_key_i <= 1;
-        assigning_simple_key();
+    new_key_i <= 1;
+//        assigning_simple_key();
     #10
     abort_i <= 0;
 //    aresetn_i <= 1;

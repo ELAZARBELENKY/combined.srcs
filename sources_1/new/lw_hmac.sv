@@ -52,8 +52,8 @@ module lw_hmac ( input clk_i,
   logic done_hash, hmac;
   logic inner_hash = 1'b0, fb = 1'b0;
   logic hash_ready;
-  logic key_full = 1'b0;
-  logic key_saved;
+//  logic key_full = 1'b0;
+  logic saved_key;
   logic new_key;
   typedef enum logic [1:0] {not_active = 2'b00, sha_op = 2'b01, hmac_op = 2'b10} state;
   state ns, ps = not_active;
@@ -62,9 +62,9 @@ module lw_hmac ( input clk_i,
   logic [`WORD_SIZE-1:0] hmac_data;
 `ifdef VIASHIFT
   logic [`WORD_SIZE-1:0] key;
-  logic [`WORD_SIZE*16-1:0] key_reg = '0;
+  logic [`WORD_SIZE*16-1:0] key_reg = {`WORD_SIZE*8{2'b01}};
 `else
-  logic [`WORD_SIZE-1:0] key_reg[15:0] = '{default: '0};
+  logic [`WORD_SIZE-1:0] key_reg[15:0] = '{default: {`WORD_SIZE/2{2'b01}}};
 `endif
 
   lw_sha_main hashing ( .aresetn_i(aresetn_i),
@@ -81,20 +81,20 @@ module lw_hmac ( input clk_i,
                         .core_ready_o(),
                         .done_o(done_hash));
 //////////////////////////////////////////////////////////////////////////////////////////////
-  assign key_saved = key_full && !new_key;
+  assign saved_key = !new_key;
   assign fault_inj_det_o = 1'b0;
   assign hmac_last = inner_hash?last_i&&!fb:!fb;
-  assign hmac_data_valid = inner_hash && !done_hash ? (fb ? key_valid_i || key_saved : data_valid_i) : 1'b1;
+  assign hmac_data_valid = inner_hash && !done_hash ? (fb ? key_valid_i || saved_key : data_valid_i) : 1'b1;
   assign hmac = ns == hmac_op;
 `ifdef CORE_ARCH_S64
   assign s64 = mode[2]||mode[1];
   always_comb begin
     if (inner_hash) begin
 `ifdef VIASHIFT
-      hmac_data = fb ? (key_saved?key:key_i)^{16{8'h36}}:data_i;
+      hmac_data = fb ? (saved_key?key:key_i)^{16{8'h36}}:data_i;
     end else if (fb) hmac_data = key^{16{8'h5c}}; 
 `else
-      hmac_data = fb ? (key_saved?key_reg[counter]:key_i)^{16{8'h36}}:data_i;
+      hmac_data = fb ? (saved_key?key_reg[counter]:key_i)^{16{8'h36}}:data_i;
     end else if (fb) hmac_data = key_reg[counter]^{16{8'h5c}};
 `endif
     else begin
@@ -112,11 +112,11 @@ module lw_hmac ( input clk_i,
 `else `ifdef CORE_ARCH_S32
 `ifdef VIASHIFT
   assign hmac_data = inner_hash ?
-                  (fb?(key_saved?key:key_i)^{8{8'h36}}:data_i):
+                  (fb?(saved_key?key:key_i)^{8{8'h36}}:data_i):
                   fb ? key^{8{8'h5c}}:
 `else
   assign hmac_data = inner_hash ?
-                  (fb?(key_saved?key_reg[counter]:key_i)^{8{8'h36}}:data_i):
+                  (fb?(saved_key?key_reg[counter]:key_i)^{8{8'h36}}:data_i):
                   fb ? key_reg[counter]^{8{8'h5c}}:
 `endif
                       counter == (mode?8:7) ? 32'h80000000:
@@ -132,7 +132,7 @@ module lw_hmac ( input clk_i,
           key_ready_o = 0;
           ready_o = 0;
         end else begin
-          key_ready_o = inner_hash && fb && !key_saved;
+          key_ready_o = inner_hash && fb && new_key;
           ns = hmac_op;
           ready_o = !fb && !done_hash && inner_hash ? hash_ready : 1'b0;
         end
@@ -177,7 +177,6 @@ module lw_hmac ( input clk_i,
   `endif
   always_ff @(posedge clk_i or negedge aresetn_i) begin
     if (!aresetn_i) begin
-      key_full <= 1'b0;
       core_ready_o <= 1'b0;
       ps <= not_active;
       fb <= 1'b0;
@@ -185,17 +184,21 @@ module lw_hmac ( input clk_i,
       counter <= 4'h0;
       inner_hashed <= '{default: '0};
       mode <= 'b0;
-      key_reg <= '{default: '0};
       hmac_start <= 1'b0;
       hash_o <= '{default: '0};
       done_o <= 1'b0;
+`ifdef VIASHIFT
+      key_reg <= {`WORD_SIZE*8{2'b01}};
+`else
+      key_reg <= '{default: {`WORD_SIZE/2{2'b01}}};
+`endif
     end else begin
       core_ready_o <= ns == not_active;
       ps <= ns;
       if (ps == hmac_op && (hash_ready || fb && inner_hash)) begin
         if (inner_hash) begin
           hmac_start <= 1'b1;
-          if (key_saved && fb) begin
+          if (saved_key && fb) begin
 `ifdef VIASHIFT
             key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
 `endif
@@ -205,8 +208,7 @@ module lw_hmac ( input clk_i,
             end else begin 
               counter <= counter - 1;
             end
-          end else if (!fb) key_full <= 1'b1;
-          else if (key_valid_i) begin
+          end else if (key_valid_i) begin
             if (counter == 4'b0) begin
               fb <= 1'b0;
               counter <= 4'hf;

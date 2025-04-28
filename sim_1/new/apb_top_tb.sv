@@ -163,7 +163,7 @@ endtask
       repeat(2) @(posedge pclk);
 
       // 2. Configure for OPCODE and strating operation
-      apb_write('h10, sha_kind); // OPCODE = sha_kind
+      apb_write('h10, {new_key,sha_kind[3:0]}); // OPCODE = sha_kind
       apb_write('h20, 32'h1);  // CTL.INIT = 1
     
     if (new_key) begin
@@ -246,9 +246,9 @@ endtask
     presetn = 1;
     repeat(5) @(posedge pclk); // Wait after reset
 
-    sha256_test(1); // No input argument
-    repeat(200) @(posedge pclk);
     sha256_test(0); // No input argument
+    repeat(200) @(posedge pclk);
+    sha256_test(1); // No input argument
   end
   always @(posedge pclk) random_i <= $random % 4;
 endmodule
