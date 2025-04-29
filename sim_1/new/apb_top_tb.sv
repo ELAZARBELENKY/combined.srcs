@@ -235,7 +235,7 @@ endtask
     paddr = 0;
     pwdata = 0;
 `ifdef CORE_ARCH_S64
-    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e`ifndef HMACAUXKEY <<(s64?512:0);`else ;
+    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e`ifndef HMACAUXKEY <<(s64?512:0);`else <<(`KEY_SIZE-`WORD_SIZE*8>0?`KEY_SIZE-`WORD_SIZE*8:0);
 `endif
 `else `ifdef CORE_ARCH_S32
     aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e;
@@ -248,6 +248,14 @@ endtask
 
     sha256_test(0); // No input argument
     repeat(200) @(posedge pclk);
+    sha256_test(1); // No input argument
+    repeat(200) @(posedge pclk);
+`ifdef CORE_ARCH_S64
+    aux_key_i = 'hb6e67e93094324798b7898a97df23467f2923890fc3a09898e9e809c989b808ad9a346fe8904324344534ba69896350c78f7291ca98e09389240b98c08d8d890`ifndef HMACAUXKEY <<(s64?512:0);`else <<(`KEY_SIZE-`WORD_SIZE*8>0?`KEY_SIZE-`WORD_SIZE*8:0);
+`endif
+`else `ifdef CORE_ARCH_S32
+    aux_key_i = 'hb6e67e93094324798b7898a97df23467f2923890fc3a09898e9e809c989b808ad9a346fe8904324344534ba69896350c78f7291ca98e09389240b98c08d8d890;
+`endif `endif
     sha256_test(1); // No input argument
   end
   always @(posedge pclk) random_i <= $random % 4;

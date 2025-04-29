@@ -9,7 +9,7 @@
  *
  */
 `ifndef VIASHIFT
-  `define VIASHIFT
+//  `define VIASHIFT
 `endif
 // The VIASHIFT is for implementing the key-saving procedure via SHIFT operation
 // instead of via pointers
@@ -22,7 +22,7 @@
 `endif
 
 `ifndef HMACAUXKEY
-  `define HMACAUXKEY;
+//  `define HMACAUXKEY;
 `endif
 
 `ifndef FIQSHA_BUS

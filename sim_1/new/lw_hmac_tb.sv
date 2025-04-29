@@ -79,11 +79,11 @@ module lw_hmac_tb;
   end
   always @(posedge clk_i) random_i <= $random % 4;
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  task automatic SendBlockData (input [3:0]block_amount);
+  task automatic SendBlockData (input [3:0] block_amount);
     int unsigned data_delay = 0, key_delay = 0;
     j = 0;
     while (core_ready_o != 1) @(posedge clk_i);
-    if (hmac_mode && (/*t == test_1 && m == HMAC_256 ||*/ new_key_i)) begin
+    if (hmac_mode && (t == test_1 && m == HMAC_256 || new_key_i)) begin
       do begin #1;
         start_i = j == 0;
         if (j != 0) opcode_i = 0;
@@ -137,8 +137,9 @@ module lw_hmac_tb;
     end
   endtask
 
+  assign hmac_mode = opcode_i[0];
+
   `ifdef CORE_ARCH_S64
-  assign hmac_mode = opcode_i[3];
   task automatic display_output();
     if (t==test_1) $display(mode);
     case (m[2:0])
@@ -170,9 +171,9 @@ module lw_hmac_tb;
     if (s32) data[0][31] = 1'b1;
     else  data[0][63] = 1'b1;
 
-    if (opcode_i[3]) begin
+    if (opcode_i[0]) begin
       data[15] = s32 ? 'd512 : 'd1024;
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'hfd870643c627ffb73a21f861b904e12e1e15ab23d31eaf5ce03dee2f6205a9b0;
         1: compression = 256'ha17c3f1a73654a1fb74c6096d437c17b082d1f6c5b359ed34b6fe1e600000000;
         2: compression = 512'he59cc81631323b25f486646e0b49f58295b3cbd2b8f71389bacc7f8cd6919226452c2bcdb0373005952b2a7c7e5443bf13010e90e0c6ffde49f99804abcd3038;
@@ -182,7 +183,7 @@ module lw_hmac_tb;
         default: compression = 512'h0;
       endcase
     end else begin
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'he3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855;
         1: compression = 256'hd14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f00000000;
         2: compression = 512'hcf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e;
@@ -200,9 +201,9 @@ module lw_hmac_tb;
     data = '{default: 0};
     data[15] = 64'h0000000000000018;
     data[0] = s32 ? 64'h61626380:64'h6162638000000000;
-    if (opcode_i[3]) begin
+    if (opcode_i[0]) begin
       data[15] = (s32 ? 'd512:'d1024) + 'h18;
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'h08bc9070da7b1463f1ea0e6993979c5757de84333183a26b69ccc050aed7753e;
         1: compression = 256'h92270d59ae1e0a17d018a2d260c2239b6374dbf581efda635bd35a2500000000;
         2: compression = 512'h62b98f9d34f2ed5b4c286249dd0243a49c43ecda9961235aa775bcbc69c9202edecf1ba36cfab07acc9e4ebb673939b91be567d8f2ac4815765c6f023b034982;
@@ -212,7 +213,7 @@ module lw_hmac_tb;
         default: compression = 512'h0;
       endcase
     end else begin
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'hba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad;
         1: compression = 256'h23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da700000000;
         2: compression = 512'hddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f;
@@ -252,9 +253,9 @@ module lw_hmac_tb;
                     64'h6b6c6d6e6f707172, 64'h6c6d6e6f70717273,
                     64'h6d6e6f7071727374, 64'h6e6f707172737475};
     end
-    if (opcode_i[3]) begin
+    if (opcode_i[0]) begin
       data[31] = s32 ? 'd512 + 'h1c0:'d1024 + 'h380;
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'h615883c8155bcc280a560082d86617444fae38633ccd380b0a24b3314730e841;
         1: compression = 256'hc538385d09aa0ac04abb755b1462b2b3a15dd98f5580d0f97524716a00000000;
         2: compression = 512'h6d9b7df81e01ba42289f0504f538b09d33e97432df6669d7df3c4b5b321bf0fa872303466d020f34aa6852a3a922989a257399be0a7eb52dc074014cfff2090a;
@@ -264,7 +265,7 @@ module lw_hmac_tb;
         default: compression = 512'h0;
       endcase
     end else begin
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'h248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1;
         1: compression = 256'h75388b16512776cc5dba5da1fd890150b0c6455cb4f58b195252252500000000;
         2: compression = 512'h8e959b75dae313da8cf4f72814fc143f8f7779c6eb9f7fa17299aeadb6889018501d289e4900f7e4331b99dec4b5433ac7d329eeb6dd26545e96e55b874be909;
@@ -293,9 +294,9 @@ module lw_hmac_tb;
                   64'h61616161662f2e2c};
       data[47] = s32 ? 64'h4a0 : 64'h940;
       data[37][s32?31:63] = 1'b1;
-    if (opcode_i[3]) begin
+    if (opcode_i[0]) begin
       data[47] = s32 ? 'd512 + 'h4a0:'d1024 + 'h940;
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'ha80554903afdd812a8b05e110626096e7b647f26df213e80abc596b7f337489a;
         1: compression = 256'hea36672dbce79da3a7308a1992f349920d2db6bfd12abcfe652fc28900000000;
         2: compression = 512'h1de9e6d28842cf76ddb0b73badfcfc9a25d5fafcd743b1f115c0cd271350b0e2043b4e6b8176691d91955166838d54766fce74f9483f2ff15ac5beb9fd8c7606;
@@ -305,7 +306,7 @@ module lw_hmac_tb;
         default: compression = 512'h0;
       endcase
     end else begin
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'h26d707651fcfe0bcef4e732e3a77a89b312aab802dfdee98fc038036a29283e4;
         1: compression = 256'h0c5cc1d83146f5a32ec721889e9a555476fb506e5627192feeb0143a00000000;
         2: compression = 512'ha8fff1b4852cd61ce420694afea1d19a1e7e217525abd87908713cd38c5488c5f14a9f3a27965db8df4057825c6a859ea72ba587b0cda060c4fda7c5f61cd3e4;
@@ -344,9 +345,9 @@ module lw_hmac_tb;
                   'h9991e65286adaca8, 'he9b8263eef5b071b, 'hcdaa1882da3269f9, 'h0cebdb81a31629d8};
     data[95] = s32 ? 64'ha00 : 64'h1400;
     data[80][s32?31:63] = 1'b1;
-    if (opcode_i[3]) begin
+    if (opcode_i[0]) begin
       data[95] = s32 ? 'd512 + 'ha00:'d1024 + 'h1400;
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'hda318988b27a1ecda8bc5ccb0f77a5457d8e6221992cb5ff4d7b09dea1b00cbe;
         1: compression = 256'h69efc48a364aebb517f22375bfc5a65a478e39bb881b8c369d9997ee00000000;
         2: compression = 512'h584433b7ee921ca69abb525f5f0f2618d7afe6c561beb67967e23b56e69ad42c6c342eb58e1bf6d0e625c420a57430d5c62dbb48129ebda877e225a76827348c;
@@ -356,7 +357,7 @@ module lw_hmac_tb;
         default: compression = 512'h0;
       endcase
     end else begin
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'h826d606f511f043501117d7ae6cf2e797aadeeb86ecd8be7f59335f32ccb0ac3;
         1: compression = 256'h470aea87bd2cb484ee41d38c01693c367c86a8aacb404eacf32130fa00000000;
         2: compression = 512'h172de649b07f51fde7980f0b769d1cc128ab1efb3d8fcd2af603a2becc4f688f5be8a9b600982565d021d5fcf66cdf207e20c3863ba4404b7114636105e2b2fc;
@@ -396,9 +397,9 @@ module lw_hmac_tb;
     data[95] = s32 ? 64'ha00 : 64'h1400;
     data[80][s32?31:63] = 1'b1;
                 
-    if (opcode_i[3]) begin
+    if (opcode_i[0]) begin
       data[95] = s32 ? 'd512 + 'ha00:'d1024 + 'h1400;
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'hb418358be947c67ea5056b229cd4f2217042d9c52d37afcae1f95bca1e51a149;
         1: compression = 256'h6927ec1ea452b542606d8ed095ecbc0e83b29e7454b1b0906fd29b1700000000;
         2: compression = 512'ha586e2c3d788d1e56c1354e5bee0154119cc10978a2469d537a36488ff217eb75754a2104b81c7c295a1f89f30563fee343d4a4f76a1c1d99f6a231b7217b5bb;
@@ -408,7 +409,7 @@ module lw_hmac_tb;
         default: compression = 512'h0;
       endcase
     end else begin
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'he23e005624bcc730f352a672e6ddd1500ea787eccd386d71485c7e1c953fb898;
         1: compression = 256'h24468bf42cc037aa0f73c98e717db14c5c01469acfd5dcf49a3b22ca00000000;
         2: compression = 512'h8a953e520970b81d09a8a9d58fc2f27b8f6eb0a487a3ffe4d5cea25be6e15988ffad4ac1e6ade1cd599ee8741a86e80371b0931ce1d0d62ff1ef5586ca579dbd;
@@ -458,9 +459,9 @@ module lw_hmac_tb;
                     'hfa530043ae400000, 'h0000000000000000, 'h0000000000000000 };
                     
     data[127] = s32 ? 64'hf89 : 64'h1f29;
-    if (opcode_i[3]) begin
+    if (opcode_i[0]) begin
     data[127] = s32 ? 'd512 + 'hf89:'d1024 + 'h1f29;
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'h4820a4a4c044b523a5c292556b0d89125df0a0a6da59a78b953571bf58d6d884;
         1: compression = 256'h44d0c31c0db1388e9c23c4859e239824bdf29059c5a812c3ea501f3900000000;
         2: compression = 512'h068e5203823a9fdd4e7a4d4ec477b0f496ac3b68ecbca43f959aeb12f358bf8c714a1e56f485b73552a0fe339d34f8095c8b2d03c5f5549dfcfc13c78cefaead;
@@ -470,7 +471,7 @@ module lw_hmac_tb;
         default: compression = 512'h0;
       endcase
     end else begin
-      case (opcode_i[2:0])
+      case (opcode_i[3:1])
         0: compression = 256'h0637697e16c69aaf54c92a0a4338ba4318235f7ca65937afaf39e5387e06784b;
         1: compression = 256'hb1d2c4905656d571f7ef0806f590be218c814f386ab117310a8d381800000000;
         2: compression = 512'hae756d6fbe7568d68a1ec8fa14c3e101d3dc792befb727545b6001c0969dbf0eb14a1c4f5ece012d17204ad8eb4c440ca4692efb41752e015c3a6d2e7459503f;
@@ -507,22 +508,22 @@ module lw_hmac_tb;
     aresetn_i <= 1;
   endtask
   
-  assign s32 = opcode_i[2:1]==2'b00;
+  assign s32 = opcode_i[3:2]==2'b00;
  
   task automatic assigning_title();#1
     case (opcode_i)
       0: begin mode = "sha 256: "; m = sha_256; end
-      1: begin mode = "sha 244: "; m = sha_224; end
-      2: begin mode = "sha 512: "; m = sha_512; end
-      3: begin mode = "sha 384: "; m = sha_384; end
-      4: begin mode = "sha 512/256: "; m = sha_512_256; end
-      5: begin mode = "sha 512/244: "; m = sha_512_224; end
-      8: begin mode = "HMAC 256: "; m = HMAC_256; end
-      9: begin mode = "HMAC 244: "; m = HMAC_224; end
-      10: begin mode = "HMAC 512: "; m = HMAC_512; end
-      11: begin mode = "HMAC 384: "; m = HMAC_384; end
-      12: begin mode = "HMAC 512/256: "; m = HMAC_512_256; end
-      13: begin mode = "HMAC 512/244: "; m = HMAC_512_224; end
+      2: begin mode = "sha 244: "; m = sha_224; end
+      4: begin mode = "sha 512: "; m = sha_512; end
+      6: begin mode = "sha 384: "; m = sha_384; end
+      8: begin mode = "sha 512/256: "; m = sha_512_256; end
+      10: begin mode = "sha 512/244: "; m = sha_512_224; end
+      1: begin mode = "HMAC 256: "; m = HMAC_256; end
+      3: begin mode = "HMAC 244: "; m = HMAC_224; end
+      5: begin mode = "HMAC 512: "; m = HMAC_512; end
+      7: begin mode = "HMAC 384: "; m = HMAC_384; end
+      9: begin mode = "HMAC 512/256: "; m = HMAC_512_256; end
+      11: begin mode = "HMAC 512/244: "; m = HMAC_512_224; end
     endcase
   endtask
 
@@ -549,24 +550,23 @@ module lw_hmac_tb;
     assigning_key();
     
     running_tests(0);//SHA-256
-    running_tests(1);//SHA-224
-    running_tests(2);//SHA-512
-    running_tests(3);//SHA-384
-    running_tests(4);//SHA-512/256
-    running_tests(5);//SHA-512/224
+    running_tests(2);//SHA-224
+    running_tests(4);//SHA-512
+    running_tests(6);//SHA-384
+    running_tests(8);//SHA-512/256
+    running_tests(10);//SHA-512/224
     reseting();
-    running_tests(8);//HMAC-256
-    running_tests(9);//HMAC-224
-    running_tests(10);//HMAC-512
-    running_tests(11);//HMAC-384
-    running_tests(12);//HMAC-512/256
-    running_tests(13);//HMAC-512/224
+    running_tests(1);//HMAC-256
+    running_tests(3);//HMAC-224
+    running_tests(5);//HMAC-512
+    running_tests(7);//HMAC-384
+    running_tests(9);//HMAC-512/256
+    running_tests(11);//HMAC-512/224
   end
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  
  `else `ifdef CORE_ARCH_S32 
  
-  assign hmac_mode = opcode_i[1];
   task automatic display_output();
     if (t==test_1) $display(mode);
     if (hash_o[7:0]==compression) begin
@@ -588,13 +588,13 @@ module lw_hmac_tb;
                   32'h00000000, 32'h00000000,
                   32'h00000000, 32'h00000000,
                   32'h00000000, 32'h00000000};
-    if (opcode_i[1]) begin
-        compression = opcode_i[0] ?
+    if (opcode_i[0]) begin
+        compression = opcode_i[1] ?
         256'ha17c3f1a73654a1fb74c6096d437c17b082d1f6c5b359ed34b6fe1e600000000:
         256'hfd870643c627ffb73a21f861b904e12e1e15ab23d31eaf5ce03dee2f6205a9b0;
         data[15] = 'd512;
     end else begin
-        compression = opcode_i[0] ?
+        compression = opcode_i[1] ?
         256'hd14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f00000000:
         256'he3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855;
     end
@@ -611,13 +611,13 @@ module lw_hmac_tb;
                     32'h00000000, 32'h00000000,
                     32'h00000000, 32'h00000000,
                     32'h00000000, 32'h00000018};
-    if (opcode_i[1]) begin
-        compression = opcode_i[0] ?
+    if (opcode_i[0]) begin
+        compression = opcode_i[1] ?
         256'h92270d59ae1e0a17d018a2d260c2239b6374dbf581efda635bd35a2500000000:
         256'h08bc9070da7b1463f1ea0e6993979c5757de84333183a26b69ccc050aed7753e;
         data[15] = 'd512 + 'h18;
     end else begin
-        compression = opcode_i[0] ?
+        compression = opcode_i[1] ?
         256'h23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da700000000:
         256'hba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad;
     end
@@ -642,13 +642,13 @@ module lw_hmac_tb;
                     'h00000000, 'h00000000,
                     'h00000000, 'h00000000,
                     'h00000000, 'h000001c0 };
-    if (opcode_i[1]) begin
-        compression = opcode_i[0] ?
+    if (opcode_i[0]) begin
+        compression = opcode_i[1] ?
         256'hc538385d09aa0ac04abb755b1462b2b3a15dd98f5580d0f97524716a00000000:
         256'h615883c8155bcc280a560082d86617444fae38633ccd380b0a24b3314730e841;
     data[31] = 'd512 + 'h1c0;
     end else begin
-        compression = opcode_i[0] ?
+        compression = opcode_i[1] ?
         256'h75388b16512776cc5dba5da1fd890150b0c6455cb4f58b195252252500000000:
         256'h248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1;
     end
@@ -669,13 +669,13 @@ module lw_hmac_tb;
                   'h662f2e2c,    'h80000000,    'h00000000,    'h00000000,
                   'h00000000,    'h00000000,    'h00000000,    'h00000000,
                   'h00000000,    'h00000000,    'h00000000,    'h000004a0  };
-    if (opcode_i[1]) begin
-        compression = opcode_i[0] ?
+    if (opcode_i[0]) begin
+        compression = opcode_i[1] ?
         256'hea36672dbce79da3a7308a1992f349920d2db6bfd12abcfe652fc28900000000:
         256'ha80554903afdd812a8b05e110626096e7b647f26df213e80abc596b7f337489a;
         data[47] = 'd512 + 'h4a0;
     end else begin
-        compression = opcode_i[0] ?
+        compression = opcode_i[1] ?
         256'h0c5cc1d83146f5a32ec721889e9a555476fb506e5627192feeb0143a00000000:
         256'h26d707651fcfe0bcef4e732e3a77a89b312aab802dfdee98fc038036a29283e4;
     end
@@ -709,13 +709,13 @@ module lw_hmac_tb;
                 'h00000000, 'h00000000, 'h00000000, 'h00000000,
                 'h00000000, 'h00000000, 'h00000000, 'h00000000,
                 'h00000000, 'h00000000, 'h00000000, 'h00000a00 };
-    if (opcode_i[1]) begin
-        compression = opcode_i[0] ?
+    if (opcode_i[0]) begin
+        compression = opcode_i[1] ?
         256'h69efc48a364aebb517f22375bfc5a65a478e39bb881b8c369d9997ee00000000:
         256'hda318988b27a1ecda8bc5ccb0f77a5457d8e6221992cb5ff4d7b09dea1b00cbe;
         data[95] = 'd512 + 'ha00;
     end else begin
-        compression = opcode_i[0] ?
+        compression = opcode_i[1] ?
         256'h470aea87bd2cb484ee41d38c01693c367c86a8aacb404eacf32130fa00000000:
         256'h826d606f511f043501117d7ae6cf2e797aadeeb86ecd8be7f59335f32ccb0ac3;
     end
@@ -750,13 +750,13 @@ module lw_hmac_tb;
                 'h00000000, 'h00000000, 'h00000000, 'h00000000,
                 'h00000000, 'h00000000, 'h00000000, 'h00000a00 };
                 
-    if (opcode_i[1]) begin
-        compression = opcode_i[0] ?
+    if (opcode_i[0]) begin
+        compression = opcode_i[1] ?
         256'h6927ec1ea452b542606d8ed095ecbc0e83b29e7454b1b0906fd29b1700000000:
         256'hb418358be947c67ea5056b229cd4f2217042d9c52d37afcae1f95bca1e51a149;
         data[95] = 'd512 + 'ha00;
     end else begin
-        compression = opcode_i[0] ?
+        compression = opcode_i[1] ?
         256'h24468bf42cc037aa0f73c98e717db14c5c01469acfd5dcf49a3b22ca00000000:
         256'he23e005624bcc730f352a672e6ddd1500ea787eccd386d71485c7e1c953fb898;
     end
@@ -787,13 +787,13 @@ module lw_hmac_tb;
                    'hb14825d4, 'h619f26fb, 'hb297b71d, 'h0b9007c0, 'haa58f949, 'h31a1ca12,
                    'h61b2f5bc, 'h255c53c7, 'hd230875f, 'hadef9979, 'hae400000, 'h00000000,
                    'h00000000, 'h00000f89 };
-    if (opcode_i[1]) begin
-      compression = opcode_i[0] ?
+    if (opcode_i[0]) begin
+      compression = opcode_i[1] ?
       256'h44d0c31c0db1388e9c23c4859e239824bdf29059c5a812c3ea501f3900000000:
       256'h4820a4a4c044b523a5c292556b0d89125df0a0a6da59a78b953571bf58d6d884;
         data[127] = 'd512 + 'hf89;
     end else begin
-      compression = opcode_i[0] ?
+      compression = opcode_i[1] ?
       256'hb1d2c4905656d571f7ef0806f590be218c814f386ab117310a8d381800000000:
       256'h0637697e16c69aaf54c92a0a4338ba4318235f7ca65937afaf39e5387e06784b;
     end
@@ -824,8 +824,8 @@ module lw_hmac_tb;
   task automatic assigning_title(); #1
     case (opcode_i)
       0: begin mode = "sha 256: "; m = sha_256; end
-      1: begin mode = "sha 244: "; m = sha_224; end
-      2: begin mode = "HMAC 256: "; m = HMAC_256; end
+      2: begin mode = "sha 244: "; m = sha_224; end
+      1: begin mode = "HMAC 256: "; m = HMAC_256; end
       3: begin mode = "HMAC 224: "; m = HMAC_224; end
     endcase
   endtask
@@ -847,23 +847,23 @@ module lw_hmac_tb;
 //    assigning_simple_key();
     assigning_key();
     running_tests(0);
-    running_tests(1);
     running_tests(2);
+    running_tests(1);
     running_tests(3);
 //    $finish;
   end
 `endif `endif
 initial begin
-  wait (m == HMAC_256 && t == test_1) begin
+  wait (m == HMAC_256 && t == test_1 && start_i) begin
 //  #1430;
 //    abort_i <= 1;
 //    aresetn_i <= 0;
     new_key_i <= 1;
 //        assigning_simple_key();
-    #10
-    abort_i <= 0;
+     #10;//wait (key_ready_o);
+//    abort_i <= 0;
 //    aresetn_i <= 1;
-    #200
+//    #200
     new_key_i <= 0;
   end
 end

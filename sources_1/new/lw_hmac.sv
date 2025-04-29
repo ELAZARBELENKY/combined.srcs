@@ -33,6 +33,7 @@ module lw_hmac ( input clk_i,
                  input [`WORD_SIZE-1:0] key_i,
                  input key_valid_i,
                  input new_key_i,
+
                  output logic key_ready_o,
                  output logic [`WORD_SIZE-1:0] hash_o[7:0],
                  output logic ready_o ,
@@ -75,7 +76,11 @@ module lw_hmac ( input clk_i,
                         .data_valid_i(hmac ? hmac_data_valid : data_valid_i),
                         .data_i(hmac ? hmac_data : data_i),
                         .random_i(random_i),
-                        .opcode_i(ps==hmac_op ? mode : opcode_i),
+`ifdef CORE_ARCH_S64
+                        .opcode_i(ps==hmac_op ? mode : opcode_i[3:1]),
+`else `ifdef CORE_ARCH_S32
+                        .opcode_i(ps==hmac_op ? mode : opcode_i[1]),
+`endif `endif                        
                         .hash_o(sha_output),
                         .ready_o(hash_ready),
                         .core_ready_o(),
@@ -139,11 +144,7 @@ module lw_hmac ( input clk_i,
       end
       not_active: begin
         if (start_i && data_valid_i) begin
-`ifdef CORE_ARCH_S64
-          if (opcode_i[3]) begin
-`else `ifdef CORE_ARCH_S32
-          if (opcode_i[1]) begin
-`endif `endif
+          if (opcode_i[0]) begin
             ns = hmac_op;
           end else begin
             ns = sha_op;
@@ -225,11 +226,11 @@ module lw_hmac ( input clk_i,
             inner_hash <= 1'b0;
             inner_hashed <= sha_output;
             fb <= 1'b1;
+            counter <= 4'hf;
           end
         end else begin
           if (counter == 4'b0) begin
             fb <= 1'b0;
-//            if (!save_key) key_reg <= '{default: '0};
           end
 `ifdef VIASHIFT
          if (fb) begin
@@ -237,11 +238,10 @@ module lw_hmac ( input clk_i,
           end
 `endif
           hmac_start <= 1'b0;
-          counter <= counter - 1;
           if (done_hash && !abort_i) begin
             hash_o <= sha_output;
             done_o <= 1'b1;
-          end
+          end else counter <= counter - 1;
         end
       end else if (ps==not_active) begin
         hmac_start <= 1'b0;
@@ -254,11 +254,13 @@ module lw_hmac ( input clk_i,
 `endif
         counter <= 4'hf;
         done_o <= 1'b0;
-        mode <= opcode_i;
         new_key <= new_key_i;
 `ifdef CORE_ARCH_S64
-        if (opcode_i [2:1] == 2'b11) ps <= not_active;
-`endif
+        if (opcode_i [3:2] == 2'b11) ps <= not_active;
+        mode <= opcode_i[3:1];
+`else `ifdef CORE_ARCH_S32
+        mode <= opcode_i[1];
+`endif `endif  
       end else if (ps == sha_op && done_hash && !abort_i) begin
         done_o <= 1'b1;
         hash_o <= sha_output;
