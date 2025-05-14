@@ -17,7 +17,7 @@
   `define CORE_ARCH_S64
 `endif
 
-`define APB_W_64
+`define APB_W_32
 
 `ifdef APB_W_32
   `define FIQSHA_BUS 32
@@ -34,7 +34,7 @@
 `endif
 
 `ifndef HMACAUXKEY
-//  `define HMACAUXKEY;
+  `define HMACAUXKEY;
 `endif
 
 `ifdef HMACAUXKEY

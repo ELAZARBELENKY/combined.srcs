@@ -147,7 +147,7 @@ logic [`WORD_SIZE-1:0] key;
     .clk_i(aclk),
     .resetn_i(aresetn),
     // Bus interface signals
-    .wr_i(con_wr),
+    .wr_i(con_wr && !reject_data),
 //    .wr_ack_o(wr_ack),
     .rd_i(con_rd),
 //    .rd_ack_i(rd_ack),
