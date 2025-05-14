@@ -24,7 +24,7 @@ localparam [31:0] sha_kind = 'h1;
   wire pslverr;
   wire irq_o;
   reg [1023:0] aux_key_i = '0;
-  reg [1:0] random_i;
+  reg [3:0] random_i;
   wire dma_wr_req_o;
   wire dma_rd_req_o;
 
@@ -266,5 +266,5 @@ endtask
 `endif `endif
     sha256_test(1); // No input argument
   end
-  always @(posedge pclk) random_i <= $random % 4;
+  always @(posedge pclk) random_i <= $random % 16;
 endmodule

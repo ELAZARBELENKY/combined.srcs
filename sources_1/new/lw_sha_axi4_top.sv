@@ -1,48 +1,48 @@
 localparam DATA_WIDTH = `FIQSHA_BUS;
 
 module lw_sha_axi4_top (
-  input  logic                  aclk,
-  input  logic                  aresetn,
+  input aclk,
+  input aresetn,
 
   // Write address channel
-  input  logic [11:0]           awaddr,
-  input  logic [7:0]            awlen,
-  input  logic [2:0]            awsize,
-  input  logic [1:0]            awburst,
-  input  logic                  awvalid,
-  input  logic [3:0]            awid,
-  output logic                  awready,
+  input [11:0] awaddr,
+  input [7:0] awlen,
+  input [2:0] awsize,
+  input [1:0] awburst,
+  input awvalid,
+  input [3:0] awid,
+  output awready,
 
   // Write data channel
-  input  logic [DATA_WIDTH-1:0] wdata,
-  input  logic                  wlast,
-  input  logic                  wvalid,
-  output logic                  wready,
+  input [DATA_WIDTH-1:0] wdata,
+  input wlast,
+  input wvalid,
+  output wready,
 
   // Write response channel
-  output logic [1:0]            bresp,
-  output logic                  bvalid,
-  input  logic                  bready,
+  output [1:0] bresp,
+  output bvalid,
+  input bready,
 
   // Read address channel
-  input  logic [11:0]           araddr,
-  input  logic [7:0]            arlen,
-  input  logic [2:0]            arsize,
-  input  logic [1:0]            arburst,
-  input  logic                  arvalid,
-  output logic                  arready,
+  input [11:0] araddr,
+  input [7:0] arlen,
+  input [2:0] arsize,
+  input [1:0] arburst,
+  input arvalid,
+  output arready,
 
   // Read data channel
-  output logic [DATA_WIDTH-1:0] rdata,
-  output logic [1:0]            rresp,
-  output logic                  rlast,
-  output logic                  rvalid,
-  input  logic                  rready,
+  output [DATA_WIDTH-1:0] rdata,
+  output [1:0] rresp,
+  output rlast,
+  output rvalid,
+  input rready,
   // IRQ
-  output logic irq,                   // Interrupt request
-  output logic dma_rd_req_o,
-  output logic dma_wr_req_o,
-  input [1:0] random_i
+  output irq,                   // Interrupt request
+  output dma_rd_req_o,
+  output dma_wr_req_o,
+  input [3:0] random_i
 `ifdef HMACAUXKEY
   ,input [`KEY_SIZE-1:0] aux_key_i
 `endif

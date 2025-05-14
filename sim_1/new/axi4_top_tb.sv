@@ -67,7 +67,7 @@ module axi4_top_tb;
   reg [DATA_WIDTH-1:0] msg     [awlen_msg];
   reg [DATA_WIDTH-1:0] status  [0:0];
   reg [DATA_WIDTH-1:0] hash_result [0:15][];
-  reg [1:0]  random;
+  reg [3:0]  random;
 
   localparam CFG_ADDR  = 32'h010;
   localparam CTL_ADDR  = 32'h020;
@@ -338,6 +338,6 @@ end
 
 //    $finish;
   end
-  always @(posedge clk) random <= $random % 4;
+  always @(posedge clk) random <= $random % 16;
 
 endmodule

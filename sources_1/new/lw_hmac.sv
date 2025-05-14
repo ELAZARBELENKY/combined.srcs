@@ -16,7 +16,7 @@ import lw_sha_pkg::*;
   localparam logic [3:0] padding_one [6]= '{4'd7,4'd8,4'd7,4'd9,4'd11,4'd12};
   localparam logic [63:0] length_field [6]= '{64'h300,64'h2e0,64'h600,64'h580,64'h500,64'h4e0};
 `endif
-
+(*dont_touch = "true"*)
 module lw_hmac ( input clk_i,
                  input aresetn_i,
                  input start_i,
@@ -24,7 +24,7 @@ module lw_hmac ( input clk_i,
                  input last_i,
                  input data_valid_i,
                  input [`WORD_SIZE-1:0] data_i,
-                 input [1:0] random_i,
+                 input [3:0] random_i,
 `ifdef CORE_ARCH_S64
                  input [3:0] opcode_i,
 `else `ifdef CORE_ARCH_S32

@@ -7,64 +7,41 @@
 //*  Dissemination of this information or reproduction of this material, in any medium,
 //*  is strictly forbidden unless prior written permission is obtained from FortifyIQ, Inc.
 //*
-`include "defines.v"
-module lw_sha_apb_top (
-	 pclk,
-	 presetn,
-	 paddr,
-	 psel,
-	 penable,
-	 pwrite,
-	 pwdata,
-	 pstrb,
-	 pready,
-	 prdata,
-	 pslverr,
-	// interrupt request
-	 irq_o,
-	// extensions
+`include "defines.v"  
+parameter FIQSHA_FIFO_SIZE = 4;
+parameter FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS;
+
+module lw_sha_apb_top #(
+  localparam DATA_WIDTH = `WORD_SIZE)
+  (input pclk,
+  input presetn,
+  input [11:0] paddr,
+  input psel,
+  input penable,
+  input pwrite,
+  input [FIQSHA_BUS_DATA_WIDTH-1:0]  pwdata,
+  input [FIQSHA_BUS_DATA_WIDTH/8-1:0] pstrb,
+  output pready,
+  output [FIQSHA_BUS_DATA_WIDTH-1:0] prdata,
+  output pslverr,
+  // Interrupt request
+  output irq_o,
+  // Optional HMAC extension
 `ifdef HMACAUXKEY
-  aux_key_i,
+  input  logic [`KEY_SIZE-1:0] aux_key_i,
 `endif
-   random_i,
+  // Random input
+  input [3:0] random_i,
   // DMA support
-   dma_wr_req_o,
-   dma_rd_req_o
+  output dma_wr_req_o,
+  output dma_rd_req_o
 );
 
-  parameter FIQSHA_FIFO_SIZE = 4;
-  parameter FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS;
-  
-  localparam DATA_WIDTH = `WORD_SIZE;
-
-  input pclk;
-  input presetn;
-  input [11:0] paddr;
-  input psel;
-  input penable;
-  input pwrite;
-  input [FIQSHA_BUS_DATA_WIDTH-1:0] pwdata;
-  input [FIQSHA_BUS_DATA_WIDTH/8-1:0] pstrb;
-  output pready;
-  output [FIQSHA_BUS_DATA_WIDTH-1:0] prdata;
-  output pslverr;
-  // interrupt request
-  output irq_o;
-  // extensions
-`ifdef HMACAUXKEY
-  input [`KEY_SIZE-1:0] aux_key_i;
-`endif
-  input logic [1:0] random_i;
-  // DMA support
-  output dma_wr_req_o;
-  output dma_rd_req_o;
-  
 logic key_ready, key_valid;
 logic [`WORD_SIZE-1:0] key;
 logic con_wr, con_wr_ack, con_rd, con_rd_ack, con_read_valid, con_slv_error;
 logic [11:0] con_waddr, con_raddr;
 logic [FIQSHA_BUS_DATA_WIDTH-1:0] con_wdata, con_rdata;
-
 
  apb_slave_adapter
  #(
