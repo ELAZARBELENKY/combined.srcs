@@ -8,7 +8,7 @@ S64 key without aux_key:
 0000000009a09c0900000000c989a0900000000023b432e2000000008000323f0000000087c79a900000000008f0ff32000000003225656e000000003326234f00000000ca889df00000000080bc09a300000000bc54d2af000000004b23c26e0000000032bb2af40000000023e2a24c000000004f5233c50000000099c7689e
 */
 module axi4_top_tb;
-  localparam logic [3:0] sha_kind = 5;
+  localparam logic [3:0] sha_kind = 1 ;
   localparam ADDR_SP_SZ = 12;
   localparam DATA_WIDTH = `FIQSHA_BUS;
   localparam HASH_ADDR = 32'h100;
@@ -286,6 +286,7 @@ end
     do axi_read_burst(STS_ADDR, status, 1);
     while (status[0][4]);
 
+// S64-based configurations
 `ifdef CORE_ARCH_S64
   `ifdef APB_W_32
     axi_read_burst(HASH_ADDR, hash_result[0], 16);
@@ -294,30 +295,36 @@ end
       hash_result[0][11], hash_result[0][10], hash_result[0][9],  hash_result[0][8],
       hash_result[0][7],  hash_result[0][6],  hash_result[0][5],  hash_result[0][4],
       hash_result[0][3],  hash_result[0][2],  hash_result[0][1],  hash_result[0][0]);
-  `else `ifdef APB_W_64
+  `elsif APB_W_64
     axi_read_burst(HASH_ADDR, hash_result[0], 8);
     $display("Hash result word = %h%h%h%h%h%h%h%h",
       hash_result[0][7], hash_result[0][6], hash_result[0][5], hash_result[0][4],
       hash_result[0][3], hash_result[0][2], hash_result[0][1], hash_result[0][0]);
-  `else `ifdef APB_W_128
+  `elsif APB_W_128
     axi_read_burst(HASH_ADDR, hash_result[0], 4);
     $display("Hash result word = %h%h%h%h",
       hash_result[0][3], hash_result[0][2], hash_result[0][1], hash_result[0][0]);
-`else
+  `endif
+`endif
+
+// S32-based configurations
+`ifdef CORE_ARCH_S32
   `ifdef APB_W_32
     axi_read_burst(HASH_ADDR, hash_result[0], 8);
     $display("Hash result word = %h%h%h%h%h%h%h%h",
       hash_result[0][7],  hash_result[0][6],  hash_result[0][5],  hash_result[0][4],
       hash_result[0][3],  hash_result[0][2],  hash_result[0][1],  hash_result[0][0]);
-  `else `ifdef APB_W_64
+  `elsif APB_W_64
     axi_read_burst(HASH_ADDR, hash_result[0], 4);
     $display("Hash result word = %h%h%h%h",
       hash_result[0][3], hash_result[0][2], hash_result[0][1], hash_result[0][0]);
-  `else `ifdef APB_W_128
-    axi_read_burst(HASH_ADDR, hash_result[0], 8*`WORD_SIZE/`FIQSHA_BUS);
+  `elsif APB_W_128
+    axi_read_burst(HASH_ADDR, hash_result[0], 2);
     $display("Hash result word = %h%h",
       hash_result[0][1], hash_result[0][0]);
-`endif `endif `endif `endif `endif `endif `endif 
+  `endif
+`endif
+
 //`ifdef CORE_ARCH_S64
 //      for (int i = 0; i < 16; i++) begin
 //        axi_read_burst('h100 + 4*i, hash_result[i], 1);
