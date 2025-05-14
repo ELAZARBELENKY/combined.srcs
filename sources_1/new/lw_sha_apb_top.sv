@@ -103,6 +103,15 @@ logic [DATA_WIDTH-1:0] data;
 logic [DATA_WIDTH-1:0] hash[7:0];
 logic core_reset;
 logic new_key;
+logic con_rd_ff;
+
+always_ff @(posedge pclk)
+  if (!presetn)
+    con_rd_ff <= 1'b0;
+  else if (con_rd)
+    con_rd_ff <= 1'b1;
+  else
+    con_rd_ff <= 1'b0;
 
 lw_sha_interface_control_logic #(
    .FIQSHA_BUS_DATA_WIDTH(FIQSHA_BUS_DATA_WIDTH),
@@ -117,24 +126,17 @@ lw_sha_interface_control_logic #(
    .resetn_i(presetn),
    .wr_i(con_wr),
    .wr_ack_o(con_wr_ack),
-   .rd_i(con_rd),
+   .rd_i(con_rd_ff),
    .rd_ack_i(con_rd_ack),
    .waddr_i(con_waddr),
    .raddr_i(con_raddr),
    .wdata_i(con_wdata),
    .rdata_o(con_rdata),
    .read_valid_o(con_read_valid),
-//   .read_ready_i('1),
 `ifdef HMACAUXKEY
    .aux_key_i(aux_key_i),
 `endif
-//   .wstuck_i('0),
-//   .rstuck_i('0),
    .burst_type_i('0),
-//   .new_write_transaction_i('0),
-//   .wtransaction_active_i('0),
-//   .new_read_transaction_i('0),
-//   .rtransaction_active_i('0),
    .irq_o(irq_o),
   // native interface
    .key_o(key),
@@ -155,7 +157,8 @@ lw_sha_interface_control_logic #(
    .dma_wr_req_o(dma_wr_req_o),
    .dma_rd_req_o(dma_rd_req_o),
    .slv_error_o(con_slv_error),
-   .core_reset_o(core_reset)
+   .core_reset_o(core_reset),
+   .overflow(1'b0)
 );
 
 lw_hmac u_lw_hmac_core (

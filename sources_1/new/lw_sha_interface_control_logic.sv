@@ -8,13 +8,11 @@
   localparam HASH_ADDR = 12'h100;
   localparam DIN_ADDR  = 12'h140;
   localparam KEY_ADDR  = 12'h150;
-  localparam SEED_ADDR = 12'h300;
+//  localparam SEED_ADDR = 12'h300;
 
 module lw_sha_interface_control_logic #(
    parameter int FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS,
-   parameter int FIQSHA_FIFO_SIZE = 4,
    parameter int ARCH_SZ = `WORD_SIZE,
-   parameter bit INCLUDE_PRNG = 0,
    parameter logic [31:0] ID_VAL = 32'h0)
    (
    input clk_i,
@@ -28,13 +26,13 @@ module lw_sha_interface_control_logic #(
    input [FIQSHA_BUS_DATA_WIDTH-1:0] wdata_i,         // write data
    output reg [FIQSHA_BUS_DATA_WIDTH-1:0] rdata_o,    // read data
    output reg read_valid_o,                           // read data validation strob
-//   input [FIQSHA_BUS_DATA_WIDTH/8-1:0] wbyte_enable_i,                                // ready for read from a bus interface adapter
 `ifdef HMACAUXKEY
    input [`KEY_SIZE-1:0] aux_key_i, // dedicated key port to protected secret input instead bus transaction.
 `endif
 
    input [1:0] burst_type_i,
    output irq_o,
+   input overflow,
   // native interface
    input [`WORD_SIZE-1:0] hash_i[7:0],
    input ready_i,
@@ -77,25 +75,26 @@ module lw_sha_interface_control_logic #(
       ie_reg <= 32'h2;
       seed_reg <= '0;
     end else begin
+      if (overflow) sts_reg[6] <= 1'b1;
       if (wr_i) begin
-`ifdef HMACAUXKEY
-        wr_ack_o = ready_i || core_ready_i;
-`else
-        wr_ack_o = ready_i || key_ready_i || core_ready_i;
-`endif
+        wr_ack_o = 1'b1;
         case (waddr_i)
           CFG_ADDR: begin
             cfg_reg[7:0] <= wdata_i[7:0];
+            cfg_reg[31] <= wdata_i[31];
           end
           CTL_ADDR: begin
             ctl_reg[31:0] <= {29'h0, wdata_i[2:0]};
             valid_o <= wdata_i[0] && (core_ready_i);
           end
           STS_ADDR: begin
+            if (wdata_i[6]) sts_reg[6] <= 1'b0;
             if (wdata_i[3]) sts_reg[3] <= 1'b0;
+            if (wdata_i[0]) sts_reg[0] <= 1'b0;
+//            if (wdata_i & 4'b0110 != '0) slv_error_o <= 1'b1; 
           end
           IE_ADDR: begin
-            ie_reg <= {27'h0, wdata_i[4:0]};
+            ie_reg <= {27'h0, wdata_i[6:0]};
           end
           DIN_ADDR: begin
             if (ready_i) begin
@@ -152,7 +151,8 @@ module lw_sha_interface_control_logic #(
         if (cfg_reg[31]) begin
           cfg_reg <= '0;
           ctl_reg <= '0;
-          sts_reg <= 32'h2;
+          sts_reg[6] <= '0;
+          sts_reg[3] <= '1;
           ie_reg <= 32'h2;
         end
       end else begin
@@ -177,26 +177,43 @@ module lw_sha_interface_control_logic #(
     else if (done_i) hash_avliable <= 1'b1;
   end
 
-  always_ff @(posedge clk_i or negedge resetn_i) begin
+  always_comb begin
+    rdata_o = '0;
+    read_valid_o = 1'b0;
     if (!resetn_i) begin
-      rdata_o <= 32'h0;
+      rdata_o = 32'h0;
+      read_valid_o = 1'b1;
     end else if (rd_i) begin
-      read_valid_o <= 1'b1;
       case (raddr_i)
-        CFG_ADDR: rdata_o <= {1'b0, cfg_reg[30:0]};
-        CTL_ADDR: rdata_o <= {ctl_reg[31:3], 3'b0};
-        STS_ADDR: rdata_o <= sts_reg;
-        IE_ADDR: rdata_o <= ie_reg;
-        default:
+        CFG_ADDR: begin
+          rdata_o = {1'b0, cfg_reg[30:0]};
+          read_valid_o = 1'b1;
+        end
+        CTL_ADDR: begin
+          rdata_o = {ctl_reg[31:3], 3'b0};
+          read_valid_o = 1'b1;
+        end
+        STS_ADDR: begin
+          rdata_o = sts_reg;
+          read_valid_o = 1'b1;
+        end
+        IE_ADDR: begin
+          rdata_o = ie_reg;
+          read_valid_o = 1'b1;
+        end
+        default: begin
           if (raddr_i[11:$clog2(`WORD_SIZE)] === HASH_ADDR[11:$clog2(`WORD_SIZE)]) begin
             for (int i = 0; i < HASH_SIZE/FIQSHA_BUS_DATA_WIDTH; i++) begin
               if (i === hash_reg_word_rptr)
                 rdata_o = hash_reg[i*FIQSHA_BUS_DATA_WIDTH +: FIQSHA_BUS_DATA_WIDTH];
             end
+            read_valid_o = 1'b1;
           end
+        end
       endcase
-    end else read_valid_o <= 1'b0;
+    end
   end
+
   typedef struct {
     logic [15:0] majorid;
     logic [15:0] minorid;
@@ -215,6 +232,7 @@ module lw_sha_interface_control_logic #(
   } ctl_t;
 
   typedef struct {
+    logic overflow;
     logic faultinjdet;
     logic busy;
     logic derr;
@@ -226,6 +244,7 @@ module lw_sha_interface_control_logic #(
   } sts_t;
 
   typedef struct {
+    logic overflow;
     logic faultinjdetie;
     logic busyie;
     logic derrie;
@@ -251,36 +270,38 @@ module lw_sha_interface_control_logic #(
   sts_t sts;
   ie_t ie;
 
-  always_comb begin
-    id = '{majorid: id_reg[31:16],
-           minorid: id_reg[15:0]};
+//  always_comb begin
+   assign id = '{majorid: id_reg[31:16],
+                 minorid: id_reg[15:0]};
 
-    cfg = '{srst: cfg_reg[31],
-           hmacnewkey: cfg_reg[4],
-           opcode: cfg_reg[3:0]};
+   assign cfg = '{srst: cfg_reg[31],
+                  hmacnewkey: cfg_reg[4],
+                  opcode: cfg_reg[3:0]};
 
-    ctl = '{abort: ctl_reg[2],
-           last: ctl_reg[1],
-           init: ctl_reg[0]};
+   assign ctl = '{abort: ctl_reg[2],
+                  last: ctl_reg[1],
+                  init: ctl_reg[0]};
 
-    sts = '{faultinjdet: sts_reg[5],
-           busy: sts_reg[4],
-           derr: sts_reg[3],
+   assign sts = '{overflow: sts_reg[6],
+                  faultinjdet: sts_reg[5],
+                  busy: sts_reg[4],
+                  derr: sts_reg[3],
 `ifndef HMACAUXKEY
-           rdyk: sts_reg[2],
+                  rdyk: sts_reg[2],
 `endif
-           rdyd: sts_reg[1],
-           avl: sts_reg[0]};
+                  rdyd: sts_reg[1],
+                  avl: sts_reg[0]};
 
-    ie = '{faultinjdetie: ie_reg[5],
-           busyie: ie_reg[4],
-           derrie: ie_reg[3],
+    assign ie = '{overflow: ie_reg[6],
+                  faultinjdetie: ie_reg[5],
+                  busyie: ie_reg[4],
+                  derrie: ie_reg[3],
 `ifndef HMACAUXKEY
-           rdykie: ie_reg[2],
+                  rdykie: ie_reg[2],
 `endif
-           rdydie: ie_reg[1],
-           avlie: ie_reg[0]};
-  end
+                  rdydie: ie_reg[1],
+                  avlie: ie_reg[0]};
+//  end
 
   assign hash_reg = {hash_i[7],hash_i[6],hash_i[5],hash_i[4],
                      hash_i[3],hash_i[2],hash_i[1],hash_i[0]};
@@ -304,11 +325,12 @@ module lw_sha_interface_control_logic #(
 `endif
 
 `ifdef CORE_ARCH_S64
-  assign s64 = cfg.opcode[2]||cfg.opcode[1];
+  assign s64 = cfg.opcode[3]||cfg.opcode[2];
 `else `ifdef CORE_ARCH_S32
   assign s64 = 1'b1;
 `endif `endif
   assign irq_o =
+     (sts.overflow & ie.overflow) |
      (sts.faultinjdet & ie.faultinjdetie) |
      (sts.busy & ie.busyie) |
      (sts.derr & ie.derrie) |
@@ -319,28 +341,46 @@ module lw_sha_interface_control_logic #(
      (sts.avl & ie.avlie);
 
 `ifdef HMACAUXKEY
-logic [3:0] ctr = 0;
+  
+  localparam int max_ctr = `KEY_SIZE/`WORD_SIZE;
+  localparam longint mask = {`KEY_SIZE%`WORD_SIZE{1'b1}}<<`WORD_SIZE-`KEY_SIZE%`WORD_SIZE;
+`ifdef CORE_ARCH_S64
+  localparam logic div_mask = `KEY_SIZE%`WORD_SIZE < `WORD_SIZE/2;
+  localparam logic good_key = `KEY_SIZE <= 512;
+  logic [`SAFE_CLOG2(`KEY_SIZE/`WORD_SIZE):0] ctr = 0;
+`else `ifdef CORE_ARCH_S32
+  logic [`SAFE_CLOG2(`KEY_SIZE/`WORD_SIZE)-1:0] ctr = 0;
+`endif `endif
+  logic [`SAFE_CLOG2(`KEY_SIZE)-1:0] ptr;
+  logic key_zero;
+  
+`ifdef CORE_ARCH_S64
+  assign ptr = `KEY_SIZE-(s64||good_key?0:`KEY_SIZE-512)-ctr*`WORD_SIZE/(s64?1:2)-1;
+`else `ifdef CORE_ARCH_S32
+  assign ptr = `KEY_SIZE-ctr*`WORD_SIZE-1;
+`endif `endif
+
   always_ff @(posedge clk_i) begin
     key_valid_o <= key_ready_i;
-    if (key_valid_o&&key_ready_i) begin
-      if ((`KEY_SIZE-`WORD_SIZE/(s64?1:2)*ctr)<`WORD_SIZE/(s64?1:2)&&`KEY_SIZE-`WORD_SIZE/(s64?1:2)*ctr!=0) begin
-        key_o <= '0;
-        key_o[`WORD_SIZE-1-:`KEY_SIZE%`WORD_SIZE] <=
-          aux_key_i[(`KEY_SIZE-1-`WORD_SIZE*ctr)-:((`KEY_SIZE%`WORD_SIZE))];
-        ctr <= ctr + 1;
-      end else if ((`KEY_SIZE-`WORD_SIZE/(s64?1:2)*ctr)>`KEY_SIZE || `KEY_SIZE-`WORD_SIZE/(s64?1:2)*ctr==0) begin
-        key_o <= '0;
+    if (key_ready_i) begin
+      if (key_zero) key_o <= '0;
+`ifdef CORE_ARCH_S64
+      else if (ctr == max_ctr*(s64?1:2)+(!s64&&!div_mask)) begin
+        key_o <= (s64 ? aux_key_i[ptr-:`WORD_SIZE]:
+        aux_key_i[ptr-:`WORD_SIZE/2]) & (mask >> (!s64&&div_mask?32:0));
+`else `ifdef CORE_ARCH_S32
+      else if (ctr == max_ctr) begin
+        key_o <= aux_key_i[ptr-:`WORD_SIZE] & mask;
+`endif `endif
+        key_zero <= 1'b1;
       end else begin
+        key_o <= (s64 ? aux_key_i[ptr-:`WORD_SIZE]:
+                        aux_key_i[ptr-:`WORD_SIZE/2]);
         ctr <= ctr + 1;
-//        key_o <= '0;
-        key_o <= ((`KEY_SIZE-`WORD_SIZE/(s64?1:2)*ctr)<`WORD_SIZE/(s64?1:2))?
-        aux_key_i[(`KEY_SIZE-1-`WORD_SIZE*ctr)-:(`KEY_SIZE%(`WORD_SIZE))]:
-        s64 ? aux_key_i[(`KEY_SIZE-1-`WORD_SIZE*ctr)-:`WORD_SIZE]:
-              aux_key_i[(`KEY_SIZE-1-`WORD_SIZE/2*ctr)-:`WORD_SIZE/2];
       end
     end else if (start_o) begin
-      ctr <= 1;
-      key_o <= s64 ? aux_key_i[`KEY_SIZE-1-:`WORD_SIZE]:aux_key_i[`KEY_SIZE-1-:`WORD_SIZE/2];
+      key_zero <= 1'b0;
+      ctr <= 0;
     end
   end
 `endif

@@ -17,6 +17,18 @@
   `define CORE_ARCH_S64
 `endif
 
+`define APB_W_64
+
+`ifdef APB_W_32
+  `define FIQSHA_BUS 32
+`endif
+`ifdef APB_W_64
+  `define FIQSHA_BUS 64
+`endif
+`ifdef APB_W_128
+  `define FIQSHA_BUS 128
+`endif
+
 `ifndef FIQLIB__ASYNC_RST
   `define FIQLIB__ASYNC_RST
 `endif
@@ -25,13 +37,9 @@
 //  `define HMACAUXKEY;
 `endif
 
-`ifndef FIQSHA_BUS
-  `define FIQSHA_BUS 64
-`endif
-
 `ifdef HMACAUXKEY
   `ifndef KEY_SIZE
-    `define KEY_SIZE 512
+    `define KEY_SIZE 520
   `endif
 `endif
 
@@ -40,6 +48,8 @@
   `else `ifdef CORE_ARCH_S64
    `define WORD_SIZE 64
 `endif `endif
+
+`define SAFE_CLOG2(x) ((x) > 1 ? $clog2(x) : 1)
 
 `ifndef FIQLIB__DEFINES
 `define FIQLIB__DEFINES

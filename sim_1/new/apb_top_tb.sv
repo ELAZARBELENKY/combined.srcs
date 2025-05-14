@@ -4,7 +4,7 @@ module apb_top_tb;
   parameter FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS;
   parameter ADDR_WIDTH = 12;
   parameter HASH_WIDTH = `WORD_SIZE*8;
-localparam [31:0] sha_kind = 'ha;
+localparam [31:0] sha_kind = 'h1;
 `ifdef CORE_ARCH_S64
     localparam s64 = sha_kind[1]||sha_kind[2];
 `else `ifdef CORE_ARCH_S32
@@ -64,58 +64,63 @@ localparam [31:0] sha_kind = 'ha;
   end
 
   // APB Write Task (Cycle-Accurate)
-  task apb_write;
-    input [ADDR_WIDTH - 1:0] addr;
-    input [FIQSHA_BUS_DATA_WIDTH - 1:0] wdata;
-    begin
-//      #1
-      psel <= 1;           // Select the slave
-      paddr <= addr;       // Set address
-      pwdata <= wdata;       // Set write data
-      pwrite <= 1;         // Write transaction
-      penable <= 0;        // Setup phase - penable LOW
-//      #10
-      @(posedge pclk);
-//      if ((addr == 'h140||addr == 'h150) && ~pready)
-//      wait (pready==1); // Wait for slave to be ready
+task apb_write;
+  input [ADDR_WIDTH - 1:0] addr;
+  input [FIQSHA_BUS_DATA_WIDTH - 1:0] wdata;
+  begin
+    // Setup phase
+    @(posedge pclk);
+    psel    = 1;
+    penable = 0;
+    pwrite  = 1;
+    paddr   = addr;
+    pwdata  = wdata;
 
-      penable <= 1;        // Enable phase - penable HIGH
-//      #10
-      @(posedge pclk);
-wait (pready==1);
-      penable <= 0;        // End of Enable phase
-      psel <= 0;         // Deselect the slave
-//      @(posedge pclk);     // Wait for pready      @(posedge pclk);
-    end
-  endtask
+    // Enable phase
+    @(posedge pclk);
+    penable = 1;
+
+    // Wait for transfer to complete
+    wait (pready == 1);
+
+    // End transaction
+    @(posedge pclk);
+    psel    = 0;
+    penable = 0;
+    pwrite  = 0;
+    paddr   = '0;
+    pwdata  = '0;
+  end
+endtask
 
 // APB Read Task (Cycle-Accurate)
 task apb_read;
-  input [ADDR_WIDTH - 1:0] addr;
+  input  [ADDR_WIDTH - 1:0] addr;
   output reg [FIQSHA_BUS_DATA_WIDTH - 1:0] rdata;
   begin
-  #1
-//    wait(pready == 1);   // Wait for slave to be ready
-    psel = 1;            // Select slave
-    paddr = addr;        // Set address
-    pwrite = 0;          // Read transaction
-    penable = 0;         // Setup phase
-//#10
+    // Setup phase
     @(posedge pclk);
-    penable = 1;         // Enable phase
-    wait(pready == 1);
-//#10
-      @(posedge pclk);
-//      wait(pready == 1);
-       // Wait for slave ready (data available)
-    rdata = prdata;      // Capture read data
+    psel   = 1;
+    penable = 0;
+    pwrite = 0;
+    paddr  = addr;
 
-    // Clear signals
-    psel = 0;            // Deselect slave
-    penable = 0;         // Disable transaction
-    paddr = '0;          // Clear address (optional, for safety)
+    // Enable phase
+    @(posedge pclk);
+    penable = 1;
+
+    // Wait for transfer to complete
+    wait (pready == 1);
+    rdata = prdata;
+
+    // End transaction
+    @(posedge pclk);
+    psel    = 0;
+    penable = 0;
+    paddr   = '0;
   end
 endtask
+
 
   // SHA-256 Test Case (Precise, with Padding)
   task automatic sha256_test (input new_key);
@@ -131,13 +136,13 @@ endtask
       localparam length = input_str.len()*8;
 `ifdef CORE_ARCH_S64
 
-        localparam num = length >= `WORD_SIZE*14 ?
-        16<<($clog2(length+`WORD_SIZE*2+1)-($clog2(`WORD_SIZE)+4)):16;
+                  /* FOR S64 */
+//        localparam num = length >= `WORD_SIZE*14 ?
+//        16<<($clog2(length+`WORD_SIZE*2+1)-($clog2(`WORD_SIZE)+4)):16;
 
-                  /*  ?FOR S32? ?FOR S64?  */
-
-//      localparam int num = length >= `WORD_SIZE/(s64?1:2)*14 ?
-//        ($clog2(length+`WORD_SIZE/(s64?1:2)*2+1)-8)*16:16;
+                  /* FOR S32 */  
+      localparam int num = length >= `WORD_SIZE/(s64?1:2)*14 ?
+        ($clog2(length+`WORD_SIZE/(s64?1:2)*2+1)-8)*16:16;
 
 `else `ifdef CORE_ARCH_S32
       localparam int num = length >= `WORD_SIZE/(s64?1:2)*14 ?
@@ -151,11 +156,8 @@ endtask
           hex_value[(length-1 - i * 8) -: 8] = input_str[i];
       end
       padded_data[num*`WORD_SIZE/(s64?1:2)-1-:length+1] = {hex_value,1'b1};
-`ifdef CORE_ARCH_S64
-      padded_data[15:0] = length + ((sha_kind > 5) ? `WORD_SIZE/(s64?1:2)*16:0);
-`else `ifdef CORE_ARCH_S32
-      padded_data[15:0] = length + ((sha_kind > 1) ? `WORD_SIZE/(s64?1:2)*16:0);
-`endif `endif
+      padded_data[15:0] = length + ((sha_kind[0]) ? `WORD_SIZE/(s64?1:2)*16:0);
+
       // 1. Reset the core
       apb_write('h10, 32'h1);
       repeat(2) @(posedge pclk);
@@ -166,8 +168,8 @@ endtask
       apb_write('h10, {new_key,sha_kind[3:0]}); // OPCODE = sha_kind
       apb_write('h20, 32'h1);  // CTL.INIT = 1
     
-    if (new_key) begin
-`ifdef CORE_ARCH_S64 `ifndef HMACAUXKEY
+    if (new_key&&sha_kind[0]) begin
+`ifndef HMACAUXKEY `ifdef CORE_ARCH_S64
       // 3. Send KEY (Padded - 512 bits)
       half_words = (`FIQSHA_BUS == 32 && s64)|| !s64;
       for (int i = 0; i < (half_words&&s64?32:16); i++) begin
@@ -195,33 +197,37 @@ endtask
           if (half_words) apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
           else apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
           if (i == num*(half_words&&s64?2:1)-10) apb_write('h20, 32'h2);
-//          if (i == 10)  apb_write('h30, 32'h4);
-        if (pslverr) i--;
+          if (pslverr) i--;
+//          if (pslverr)  apb_write('h30, 32'h8);
       end
 `else `ifdef CORE_ARCH_S32
       for (int i = 0; i < num; i++) begin
-          apb_write('h140, padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
-          if (i == num-10) apb_write('h20, 32'h2);
+        apb_write('h140, padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
+        if (i == num-10) apb_write('h20, 32'h2);
         if (pslverr) i--;
+        if (pslverr) apb_write('h30, 32'h8);
       end
 `endif `endif
 
       // 5. Wait for result
-      do apb_read('h030,avl); while (avl[0] !== 1'b1);
-
+      do apb_read('h030,avl); while (avl[0] != 1'b1);
+      
       // 6. Read the hash result
       for (int i = 0; i < HASH_WIDTH / FIQSHA_BUS_DATA_WIDTH; i++) begin
         apb_read('h100 + (i * (FIQSHA_BUS_DATA_WIDTH / 8)), hash_result[i]);
       end
-  
+   apb_write('h30, 32'h1);
       $display("SHA-256 Test Result:");
       $display("input data(UTF-8): %s", input_str);
       $display("input data - Hexa: %h", hex_value);
       $display("input data padded: %h", padded_data);
-`ifdef HMACAUXKEY
-      $display("aux_key: %h", aux_key_i[`KEY_SIZE-1:0]);
-`endif
+//`ifdef HMACAUXKEY
+//if (`KEY_SIZE != 0)
+//      $display("aux_key: %h", aux_key_i[`KEY_SIZE-1:0]);
+//`endif
+      if (new_key) $display("aux_key: %h", aux_key_i[512-1:0]);
       $display("num of blocks: %d", num*32/(`WORD_SIZE/(s64?1:2)*16));
+      $display("SHA-kind: %h", sha_kind);
       $display("Hash Result: %h", hash_result);
   
     end
@@ -235,10 +241,11 @@ endtask
     paddr = 0;
     pwdata = 0;
 `ifdef CORE_ARCH_S64
-    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e`ifndef HMACAUXKEY <<(s64?512:0);`else <<(`KEY_SIZE-`WORD_SIZE*8>0?`KEY_SIZE-`WORD_SIZE*8:0);
-`endif
+    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e
+    `ifndef HMACAUXKEY <<(s64?512:0);`else >> ((`WORD_SIZE*8-`KEY_SIZE > 0) ? (`WORD_SIZE*8-`KEY_SIZE):0);`endif
 `else `ifdef CORE_ARCH_S32
-    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e;
+    aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e
+    `ifndef HMACAUXKEY << 0;`else >> ((`WORD_SIZE*16-`KEY_SIZE > 0) ? (`WORD_SIZE*16-`KEY_SIZE):0); `endif
 `endif `endif
     // Run tests
     presetn = 0;
@@ -251,10 +258,11 @@ endtask
     sha256_test(1); // No input argument
     repeat(200) @(posedge pclk);
 `ifdef CORE_ARCH_S64
-    aux_key_i = 'hb6e67e93094324798b7898a97df23467f2923890fc3a09898e9e809c989b808ad9a346fe8904324344534ba69896350c78f7291ca98e09389240b98c08d8d890`ifndef HMACAUXKEY <<(s64?512:0);`else <<(`KEY_SIZE-`WORD_SIZE*8>0?`KEY_SIZE-`WORD_SIZE*8:0);
-`endif
+    aux_key_i = 'hb6e67e93094324798b7898a97df23467f2923890fc3a09898e9e809c989b808ad9a346fe8904324344534ba69896350c78f7291ca98e09389240b98c08d8d890
+`ifndef HMACAUXKEY <<(s64?512:0);`else >> ((`WORD_SIZE*8-`KEY_SIZE > 0) ? (`WORD_SIZE*8-`KEY_SIZE):0);`endif
 `else `ifdef CORE_ARCH_S32
-    aux_key_i = 'hb6e67e93094324798b7898a97df23467f2923890fc3a09898e9e809c989b808ad9a346fe8904324344534ba69896350c78f7291ca98e09389240b98c08d8d890;
+    aux_key_i = 'hb6e67e93094324798b7898a97df23467f2923890fc3a09898e9e809c989b808ad9a346fe8904324344534ba69896350c78f7291ca98e09389240b98c08d8d890
+    `ifndef HMACAUXKEY << 0;`else >> ((`WORD_SIZE*16-`KEY_SIZE > 0) ? (`WORD_SIZE*16-`KEY_SIZE):0); `endif
 `endif `endif
     sha256_test(1); // No input argument
   end
