@@ -318,7 +318,6 @@ module lw_sha_interface_control_logic #(
   assign dma_wr_req_o = sts.rdyd;
   assign dma_rd_req_o = sts.avl;
 `ifndef HMACAUXKEY
-  assign dma_wr_req_o = dma_wr_req_o || sts.rdyk;
   assign sts_reg[2] = key_ready_i;
 `else
   assign sts_reg[2] = 1'b0;

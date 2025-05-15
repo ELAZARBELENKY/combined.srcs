@@ -8,10 +8,9 @@ S64 key without aux_key:
 0000000009a09c0900000000c989a0900000000023b432e2000000008000323f0000000087c79a900000000008f0ff32000000003225656e000000003326234f00000000ca889df00000000080bc09a300000000bc54d2af000000004b23c26e0000000032bb2af40000000023e2a24c000000004f5233c50000000099c7689e
 */
 module axi4_top_tb;
-  localparam logic [3:0] sha_kind = 1 ;
+  localparam logic [3:0] sha_kind = 1;
   localparam ADDR_SP_SZ = 12;
   localparam DATA_WIDTH = `FIQSHA_BUS;
-  localparam HASH_ADDR = 32'h100;
   localparam awlen_msg = 16;
   
 `ifdef CORE_ARCH_S64
@@ -257,18 +256,19 @@ endtask
     'h0f5588e3, 'h6c63f371, 'ha4ddd72d, 'h89308a6d,
     'h1a41e5ed, 'hced3f805, 'h720ecea6, 'h4f09d21b};
     do axi_write_burst(DIN_ADDR, msg, awlen_msg); while (bresp==2);
- 
+    ctl[0] = 2;
+    axi_write_burst(CTL_ADDR, ctl, 1); 
     wait (irq);
     msg[0:15] = 
     '{'h1059ff90, 'hb5b1f5e9, 'hff7f3374, 'hda3ded1d,
     'h47eb9f65, 'h62d0bff4, 'h8974c023, 'h4e5be5fa,
     'h1f571c98, 'h4c5d4dc8, 'hedbd13d4, 'hfffc2080,
     'h00000000, 'h00000000, 'h00000000, 'h00000378 + (sha_kind[0]?`ifdef CORE_ARCH_S32 'd512 `else !sha_kind[2]&&!sha_kind[3]?'d512:'d1024`endif:0)};
-    ctl[0] = 2;
-    axi_write_burst(CTL_ADDR, ctl, 1);
     axi_write_burst(DIN_ADDR, msg, awlen_msg);
 end else begin
-//    wait (irq);
+    ctl[0] = 2;
+    axi_write_burst(CTL_ADDR, ctl, 1);
+    wait (irq);
     msg[0:15] =
     '{'h88866d5a04c2b81f, 'h579962b7293928a6,
     'ha2458381ef4f022f, 'hc2ec7a72422b275e,
@@ -278,8 +278,6 @@ end else begin
     'h47eb9f6562d0bff4, 'h8974c0234e5be5fa,
     'h1f571c984c5d4dc8, 'hedbd13d4fffc2080,
     'h0, 'h378 + (sha_kind[0]?`ifdef CORE_ARCH_S32 'd512 `else !sha_kind[2]&&!sha_kind[3]?'d512:'d1024`endif:0)};
-    ctl[0] = 2;
-    axi_write_burst(CTL_ADDR, ctl, 1);
 //    axi_write_burst(DIN_ADDR, msg, awlen_msg);
     do axi_write_burst(DIN_ADDR, msg, awlen_msg); while (bresp==2);
 end

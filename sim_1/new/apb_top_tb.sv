@@ -4,7 +4,7 @@ module apb_top_tb;
   parameter FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS;
   parameter ADDR_WIDTH = 12;
   parameter HASH_WIDTH = `WORD_SIZE*8;
-localparam [31:0] sha_kind = 'h1;
+localparam [3:0] sha_kind = 'h1;
 `ifdef CORE_ARCH_S64
     localparam s64 = sha_kind[1]||sha_kind[2];
 `else `ifdef CORE_ARCH_S32
@@ -159,23 +159,23 @@ endtask
       padded_data[15:0] = length + ((sha_kind[0]) ? `WORD_SIZE/(s64?1:2)*16:0);
 
       // 1. Reset the core
-      apb_write('h10, 32'h1);
+      apb_write(CFG_ADDR, 32'h1);
       repeat(2) @(posedge pclk);
-      apb_write('h10, 32'h0);
+      apb_write(CFG_ADDR, 32'h0);
       repeat(2) @(posedge pclk);
 
       // 2. Configure for OPCODE and strating operation
-      apb_write('h10, {new_key,sha_kind[3:0]}); // OPCODE = sha_kind
-      apb_write('h20, 32'h1);  // CTL.INIT = 1
+      apb_write(CFG_ADDR, {new_key,sha_kind[3:0]}); // OPCODE = sha_kind
+      apb_write(CTL_ADDR, 32'h1);  // CTL.INIT = 1
     
     if (new_key&&sha_kind[0]) begin
 `ifndef HMACAUXKEY `ifdef CORE_ARCH_S64
       // 3. Send KEY (Padded - 512 bits)
       half_words = (`FIQSHA_BUS == 32 && s64)|| !s64;
       for (int i = 0; i < (half_words&&s64?32:16); i++) begin
-        if (half_words) apb_write('h150,
+        if (half_words) apb_write(KEY_ADDR,
           aux_key_i[(16*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
-        else apb_write('h150,
+        else apb_write(KEY_ADDR,
           aux_key_i[(16*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
 //        if (i == 2) pstrb <= 'h81;
 //        else pstrb <= '1;
@@ -183,40 +183,40 @@ endtask
       end
 `else `ifdef CORE_ARCH_S32
       for (int i = 0; i < 16; i++) begin
-          apb_write('h150,
+          apb_write(KEY_ADDR,
           aux_key_i[(16*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
         if (pslverr) i--;
       end
 `endif `endif `endif 
     end
-
+//#70 apb_write(CTL_ADDR, 32'h2);
       // 4. Send Data (Padded - 512 bits)
 `ifdef CORE_ARCH_S64
       half_words = (`FIQSHA_BUS == 32 && s64) || !s64;
       for (int i = 0; i < num*(half_words&&s64?2:1); i++) begin
-          if (half_words) apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
-          else apb_write('h140, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
-          if (i == num*(half_words&&s64?2:1)-10) apb_write('h20, 32'h2);
+          if (half_words) apb_write(DIN_ADDR, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE/2)) -: `WORD_SIZE/2]); // Write data segment
+          else apb_write(DIN_ADDR, padded_data[(num*`WORD_SIZE/(s64?1:2)-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
+          if (i == num*(half_words&&s64?2:1)-10) apb_write(CTL_ADDR, 32'h2);
           if (pslverr) i--;
-//          if (pslverr)  apb_write('h30, 32'h8);
+//          if (pslverr)  apb_write(STS_ADDR, 32'h8);
       end
 `else `ifdef CORE_ARCH_S32
       for (int i = 0; i < num; i++) begin
-        apb_write('h140, padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
-        if (i == num-10) apb_write('h20, 32'h2);
+        apb_write(DIN_ADDR, padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
+        if (i == num-10) apb_write(CTL_ADDR, 32'h2);
         if (pslverr) i--;
-        if (pslverr) apb_write('h30, 32'h8);
+        if (pslverr) apb_write(STS_ADDR, 32'h8);
       end
 `endif `endif
 
       // 5. Wait for result
-      do apb_read('h030,avl); while (avl[0] != 1'b1);
+      do apb_read(STS_ADDR,avl); while (avl[0] != 1'b1);
       
       // 6. Read the hash result
       for (int i = 0; i < HASH_WIDTH / FIQSHA_BUS_DATA_WIDTH; i++) begin
-        apb_read('h100 + (i * (FIQSHA_BUS_DATA_WIDTH / 8)), hash_result[i]);
+        apb_read(HASH_ADDR + (i * (FIQSHA_BUS_DATA_WIDTH / 8)), hash_result[i]);
       end
-   apb_write('h30, 32'h1);
+   apb_write(STS_ADDR, 32'h1);
       $display("SHA-256 Test Result:");
       $display("input data(UTF-8): %s", input_str);
       $display("input data - Hexa: %h", hex_value);

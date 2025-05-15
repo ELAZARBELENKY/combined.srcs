@@ -34,7 +34,7 @@
 `endif
 
 `ifndef HMACAUXKEY
-  `define HMACAUXKEY;
+//  `define HMACAUXKEY;
 `endif
 
 `ifdef HMACAUXKEY
