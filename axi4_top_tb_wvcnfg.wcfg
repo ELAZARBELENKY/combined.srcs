@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="axi4_top_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="\$unit_lw_sha_apb_top_sv " />
+            <top_module name="\$unit_lw_sha_pkg_sv " />
+            <top_module name="axi4_top_tb" />
+            <top_module name="glbl" />
+            <top_module name="lw_sha_pkg" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="3245750000fs"></ZoomStartTime>
+      <ZoomEndTime time="3613550001fs"></ZoomEndTime>
+      <Cursor1Time time="3495000000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="312"></NameColumnWidth>
+      <ValueColumnWidth column_width="162"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="8" />
+   <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hash_o" type="array">
+      <obj_property name="ElementShortName">hash_o[7:0][63:0]</obj_property>
+      <obj_property name="ObjectShortName">hash_o[7:0][63:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/done_o" type="logic">
+      <obj_property name="ElementShortName">done_o</obj_property>
+      <obj_property name="ObjectShortName">done_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="group1508" type="group">
+      <obj_property name="label">I/Os</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/axi4_top_tb/clk" type="logic">
+         <obj_property name="ElementShortName">clk</obj_property>
+         <obj_property name="ObjectShortName">clk</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/resetn" type="logic">
+         <obj_property name="ElementShortName">resetn</obj_property>
+         <obj_property name="ObjectShortName">resetn</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/awaddr" type="array">
+         <obj_property name="ElementShortName">awaddr[11:0]</obj_property>
+         <obj_property name="ObjectShortName">awaddr[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/awlen" type="array">
+         <obj_property name="ElementShortName">awlen[7:0]</obj_property>
+         <obj_property name="ObjectShortName">awlen[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/awsize" type="array">
+         <obj_property name="ElementShortName">awsize[2:0]</obj_property>
+         <obj_property name="ObjectShortName">awsize[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/awburst" type="array">
+         <obj_property name="ElementShortName">awburst[1:0]</obj_property>
+         <obj_property name="ObjectShortName">awburst[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/awvalid" type="logic">
+         <obj_property name="ElementShortName">awvalid</obj_property>
+         <obj_property name="ObjectShortName">awvalid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/awid" type="array">
+         <obj_property name="ElementShortName">awid[3:0]</obj_property>
+         <obj_property name="ObjectShortName">awid[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/awready" type="logic">
+         <obj_property name="ElementShortName">awready</obj_property>
+         <obj_property name="ObjectShortName">awready</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/wdata" type="array">
+         <obj_property name="ElementShortName">wdata[127:0]</obj_property>
+         <obj_property name="ObjectShortName">wdata[127:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/wlast" type="logic">
+         <obj_property name="ElementShortName">wlast</obj_property>
+         <obj_property name="ObjectShortName">wlast</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/wvalid" type="logic">
+         <obj_property name="ElementShortName">wvalid</obj_property>
+         <obj_property name="ObjectShortName">wvalid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/wready" type="logic">
+         <obj_property name="ElementShortName">wready</obj_property>
+         <obj_property name="ObjectShortName">wready</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/bresp" type="array">
+         <obj_property name="ElementShortName">bresp[1:0]</obj_property>
+         <obj_property name="ObjectShortName">bresp[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/bvalid" type="logic">
+         <obj_property name="ElementShortName">bvalid</obj_property>
+         <obj_property name="ObjectShortName">bvalid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/bready" type="logic">
+         <obj_property name="ElementShortName">bready</obj_property>
+         <obj_property name="ObjectShortName">bready</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/araddr" type="array">
+         <obj_property name="ElementShortName">araddr[11:0]</obj_property>
+         <obj_property name="ObjectShortName">araddr[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/raddr_i" type="array">
+         <obj_property name="ElementShortName">raddr_i[11:0]</obj_property>
+         <obj_property name="ObjectShortName">raddr_i[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/arlen" type="array">
+         <obj_property name="ElementShortName">arlen[7:0]</obj_property>
+         <obj_property name="ObjectShortName">arlen[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/arsize" type="array">
+         <obj_property name="ElementShortName">arsize[2:0]</obj_property>
+         <obj_property name="ObjectShortName">arsize[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/arburst" type="array">
+         <obj_property name="ElementShortName">arburst[1:0]</obj_property>
+         <obj_property name="ObjectShortName">arburst[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/arvalid" type="logic">
+         <obj_property name="ElementShortName">arvalid</obj_property>
+         <obj_property name="ObjectShortName">arvalid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/arready" type="logic">
+         <obj_property name="ElementShortName">arready</obj_property>
+         <obj_property name="ObjectShortName">arready</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/rdata" type="array">
+         <obj_property name="ElementShortName">rdata[127:0]</obj_property>
+         <obj_property name="ObjectShortName">rdata[127:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/rresp" type="array">
+         <obj_property name="ElementShortName">rresp[1:0]</obj_property>
+         <obj_property name="ObjectShortName">rresp[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/rlast" type="logic">
+         <obj_property name="ElementShortName">rlast</obj_property>
+         <obj_property name="ObjectShortName">rlast</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/rvalid" type="logic">
+         <obj_property name="ElementShortName">rvalid</obj_property>
+         <obj_property name="ObjectShortName">rvalid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/rready" type="logic">
+         <obj_property name="ElementShortName">rready</obj_property>
+         <obj_property name="ObjectShortName">rready</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/irq" type="logic">
+         <obj_property name="ElementShortName">irq</obj_property>
+         <obj_property name="ObjectShortName">irq</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group1479" type="group">
+      <obj_property name="label">ADDRESS</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/axi4_top_tb/CFG_ADDR" type="array">
+         <obj_property name="ElementShortName">CFG_ADDR[31:0]</obj_property>
+         <obj_property name="ObjectShortName">CFG_ADDR[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/CTL_ADDR" type="array">
+         <obj_property name="ElementShortName">CTL_ADDR[31:0]</obj_property>
+         <obj_property name="ObjectShortName">CTL_ADDR[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/STS_ADDR" type="array">
+         <obj_property name="ElementShortName">STS_ADDR[31:0]</obj_property>
+         <obj_property name="ObjectShortName">STS_ADDR[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/HASH_ADDR" type="array">
+         <obj_property name="ElementShortName">HASH_ADDR[31:0]</obj_property>
+         <obj_property name="ObjectShortName">HASH_ADDR[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/DIN_ADDR" type="array">
+         <obj_property name="ElementShortName">DIN_ADDR[31:0]</obj_property>
+         <obj_property name="ObjectShortName">DIN_ADDR[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/KEY_ADDR" type="array">
+         <obj_property name="ElementShortName">KEY_ADDR[31:0]</obj_property>
+         <obj_property name="ObjectShortName">KEY_ADDR[31:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider26">
+      <obj_property name="label">IFCL</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="group1476" type="group">
+      <obj_property name="label">INTERFACE-REGS</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/id_reg" type="array">
+         <obj_property name="ElementShortName">id_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">id_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/cfg_reg" type="array">
+         <obj_property name="ElementShortName">cfg_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">cfg_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/ctl_reg" type="array">
+         <obj_property name="ElementShortName">ctl_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">ctl_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/sts_reg" type="array">
+         <obj_property name="ElementShortName">sts_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">sts_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/ie_reg" type="array">
+         <obj_property name="ElementShortName">ie_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">ie_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/seed_reg" type="array">
+         <obj_property name="ElementShortName">seed_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">seed_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/din_reg" type="array">
+         <obj_property name="ElementShortName">din_reg[63:0]</obj_property>
+         <obj_property name="ObjectShortName">din_reg[63:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/hash_reg" type="array">
+         <obj_property name="ElementShortName">hash_reg[511:0]</obj_property>
+         <obj_property name="ObjectShortName">hash_reg[511:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/hash_reg_word_rptr" type="array">
+         <obj_property name="ElementShortName">hash_reg_word_rptr[1:0]</obj_property>
+         <obj_property name="ObjectShortName">hash_reg_word_rptr[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/cfg" type="array">
+         <obj_property name="ElementShortName">cfg</obj_property>
+         <obj_property name="ObjectShortName">cfg</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/ctl" type="array">
+         <obj_property name="ElementShortName">ctl</obj_property>
+         <obj_property name="ObjectShortName">ctl</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/sts" type="array">
+         <obj_property name="ElementShortName">sts</obj_property>
+         <obj_property name="ObjectShortName">sts</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/hmac_ctrl/ie" type="array">
+         <obj_property name="ElementShortName">ie</obj_property>
+         <obj_property name="ObjectShortName">ie</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="divider" fp_name="divider64">
+      <obj_property name="label">HMAC</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="group1477" type="group">
+      <obj_property name="label">HMAC-CORE</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/clk_i" type="logic">
+         <obj_property name="ElementShortName">clk_i</obj_property>
+         <obj_property name="ObjectShortName">clk_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/aresetn_i" type="logic">
+         <obj_property name="ElementShortName">aresetn_i</obj_property>
+         <obj_property name="ObjectShortName">aresetn_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/start_i" type="logic">
+         <obj_property name="ElementShortName">start_i</obj_property>
+         <obj_property name="ObjectShortName">start_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/abort_i" type="logic">
+         <obj_property name="ElementShortName">abort_i</obj_property>
+         <obj_property name="ObjectShortName">abort_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/last_i" type="logic">
+         <obj_property name="ElementShortName">last_i</obj_property>
+         <obj_property name="ObjectShortName">last_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/data_valid_i" type="logic">
+         <obj_property name="ElementShortName">data_valid_i</obj_property>
+         <obj_property name="ObjectShortName">data_valid_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/data_i" type="array">
+         <obj_property name="ElementShortName">data_i[63:0]</obj_property>
+         <obj_property name="ObjectShortName">data_i[63:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/random_i" type="array">
+         <obj_property name="ElementShortName">random_i[3:0]</obj_property>
+         <obj_property name="ObjectShortName">random_i[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/opcode_i" type="array">
+         <obj_property name="ElementShortName">opcode_i[3:0]</obj_property>
+         <obj_property name="ObjectShortName">opcode_i[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/key_i" type="array">
+         <obj_property name="ElementShortName">key_i[63:0]</obj_property>
+         <obj_property name="ObjectShortName">key_i[63:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/key_valid_i" type="logic">
+         <obj_property name="ElementShortName">key_valid_i</obj_property>
+         <obj_property name="ObjectShortName">key_valid_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/new_key_i" type="logic">
+         <obj_property name="ElementShortName">new_key_i</obj_property>
+         <obj_property name="ObjectShortName">new_key_i</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/key_ready_o" type="logic">
+         <obj_property name="ElementShortName">key_ready_o</obj_property>
+         <obj_property name="ObjectShortName">key_ready_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hash_o" type="array">
+         <obj_property name="ElementShortName">hash_o[7:0][63:0]</obj_property>
+         <obj_property name="ObjectShortName">hash_o[7:0][63:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/ready_o" type="logic">
+         <obj_property name="ElementShortName">ready_o</obj_property>
+         <obj_property name="ObjectShortName">ready_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/done_o" type="logic">
+         <obj_property name="ElementShortName">done_o</obj_property>
+         <obj_property name="ObjectShortName">done_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/fault_inj_det_o" type="logic">
+         <obj_property name="ElementShortName">fault_inj_det_o</obj_property>
+         <obj_property name="ObjectShortName">fault_inj_det_o</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/counter" type="array">
+         <obj_property name="ElementShortName">counter[3:0]</obj_property>
+         <obj_property name="ObjectShortName">counter[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/mode" type="array">
+         <obj_property name="ElementShortName">mode[2:0]</obj_property>
+         <obj_property name="ObjectShortName">mode[2:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/sha_output" type="array">
+         <obj_property name="ElementShortName">sha_output[7:0][63:0]</obj_property>
+         <obj_property name="ObjectShortName">sha_output[7:0][63:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/inner_hashed" type="array">
+         <obj_property name="ElementShortName">inner_hashed[7:0][63:0]</obj_property>
+         <obj_property name="ObjectShortName">inner_hashed[7:0][63:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/done_hash" type="logic">
+         <obj_property name="ElementShortName">done_hash</obj_property>
+         <obj_property name="ObjectShortName">done_hash</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hmac" type="logic">
+         <obj_property name="ElementShortName">hmac</obj_property>
+         <obj_property name="ObjectShortName">hmac</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/inner_hash" type="logic">
+         <obj_property name="ElementShortName">inner_hash</obj_property>
+         <obj_property name="ObjectShortName">inner_hash</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/fb" type="logic">
+         <obj_property name="ElementShortName">fb</obj_property>
+         <obj_property name="ObjectShortName">fb</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hash_ready" type="logic">
+         <obj_property name="ElementShortName">hash_ready</obj_property>
+         <obj_property name="ObjectShortName">hash_ready</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/saved_key" type="logic">
+         <obj_property name="ElementShortName">saved_key</obj_property>
+         <obj_property name="ObjectShortName">saved_key</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/new_key" type="logic">
+         <obj_property name="ElementShortName">new_key</obj_property>
+         <obj_property name="ObjectShortName">new_key</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/ns" type="array">
+         <obj_property name="ElementShortName">ns[1:0]</obj_property>
+         <obj_property name="ObjectShortName">ns[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/ps" type="array">
+         <obj_property name="ElementShortName">ps[1:0]</obj_property>
+         <obj_property name="ObjectShortName">ps[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hmac_last" type="logic">
+         <obj_property name="ElementShortName">hmac_last</obj_property>
+         <obj_property name="ObjectShortName">hmac_last</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hmac_data_valid" type="logic">
+         <obj_property name="ElementShortName">hmac_data_valid</obj_property>
+         <obj_property name="ObjectShortName">hmac_data_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hmac_start" type="logic">
+         <obj_property name="ElementShortName">hmac_start</obj_property>
+         <obj_property name="ObjectShortName">hmac_start</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hmac_data" type="array">
+         <obj_property name="ElementShortName">hmac_data[63:0]</obj_property>
+         <obj_property name="ObjectShortName">hmac_data[63:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/key_reg" type="array">
+         <obj_property name="ElementShortName">key_reg[1023:0]</obj_property>
+         <obj_property name="ObjectShortName">key_reg[1023:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hashing/state" type="array">
+         <obj_property name="ElementShortName">state[7:0][65:0]</obj_property>
+         <obj_property name="ObjectShortName">state[7:0][65:0]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject fp_name="/axi4_top_tb/dut/u_lw_hmac_core/hashing/w" type="array">
+         <obj_property name="ElementShortName">w[15:0][63:0]</obj_property>
+         <obj_property name="ObjectShortName">w[15:0][63:0]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

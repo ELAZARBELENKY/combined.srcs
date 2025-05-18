@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 localparam DATA_WIDTH = `FIQSHA_BUS;
 
 module lw_sha_axi4_top (

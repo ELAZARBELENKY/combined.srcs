@@ -92,12 +92,7 @@ always_ff @(posedge pclk)
 
 lw_sha_interface_control_logic #(
    .FIQSHA_BUS_DATA_WIDTH(FIQSHA_BUS_DATA_WIDTH),
-   .FIQSHA_FIFO_SIZE(FIQSHA_FIFO_SIZE),
-//   .BYTE_MAP_SZ(2048),
-   .ARCH_SZ(DATA_WIDTH),
-   .INCLUDE_PRNG(0)
-//   .BURST_EN(0),
-//   .BYTE_ACCESS_EN(0)
+   .ARCH_SZ(DATA_WIDTH)
 ) u_if_core (
    .clk_i(pclk),
    .resetn_i(presetn),
@@ -140,7 +135,7 @@ lw_sha_interface_control_logic #(
 
 lw_hmac u_lw_hmac_core (
    .clk_i(pclk),
-   .aresetn_i(core_reset),
+   .aresetn_i(core_reset && presetn),
    .start_i(start),
    .abort_i(abort),
    .last_i(last),
