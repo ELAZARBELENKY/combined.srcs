@@ -70,7 +70,7 @@ module lw_hmac ( input clk_i,
 
   lw_sha_main hashing ( .aresetn_i(aresetn_i),
                         .clk_i(clk_i),
-                        .start_i(hmac_start||start_i),
+                        .start_i(hmac_start&&!abort_i||start_i),
                         .abort_i(abort_i),
                         .last_i(hmac ? hmac_last : last_i),
                         .data_valid_i(hmac ? hmac_data_valid : data_valid_i),
@@ -124,9 +124,9 @@ module lw_hmac ( input clk_i,
                   (fb?(saved_key?key_reg[counter]:key_i)^{8{8'h36}}:data_i):
                   fb ? key_reg[counter]^{8{8'h5c}}:
 `endif
-                      counter == (mode?8:7) ? 32'h80000000:
-                      counter==0 ? mode?32'h2e0:32'h300:
-                      counter[3] ? inner_hashed[counter[2:0]] : 32'b0;
+                  counter == (mode?8:7) ? 32'h80000000:
+                  counter==0 ? mode?32'h2e0:32'h300:
+                  counter[3] ? inner_hashed[counter[2:0]] : 32'b0;
 `endif `endif
 
   always_comb begin

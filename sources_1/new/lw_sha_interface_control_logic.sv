@@ -55,7 +55,7 @@ module lw_sha_interface_control_logic #(
    output reg slv_error_o,
    output core_reset_o
    );
-   
+  
   localparam byte BUS_DATA_IN_ARCH_SZ = (ARCH_SZ + FIQSHA_BUS_DATA_WIDTH - 1)/FIQSHA_BUS_DATA_WIDTH;
   logic first_word = 1;
   logic s64;
@@ -64,9 +64,10 @@ module lw_sha_interface_control_logic #(
   logic [31:0] cfg_reg, ctl_reg, sts_reg, ie_reg, seed_reg;
   logic [`WORD_SIZE-1:0] din_reg;
   logic [8*`WORD_SIZE-1:0] hash_reg;
-
+  assign slv_error_o = wr_i && (waddr_i == DIN_ADDR && !ready_i ||
+                                waddr_i == KEY_ADDR && !key_ready_i);
   localparam HASH_SIZE = `WORD_SIZE*8;
-
+  assign wr_ack_o = wr_i;
   always_ff @(posedge clk_i or negedge resetn_i) begin
     if (~resetn_i) begin
       cfg_reg <= '0;
@@ -77,7 +78,7 @@ module lw_sha_interface_control_logic #(
     end else begin
       if (overflow) sts_reg[6] <= 1'b1;
       if (wr_i) begin
-        wr_ack_o = 1'b1;
+//        wr_ack_o = 1'b1;
         case (waddr_i)
           CFG_ADDR: begin
             cfg_reg[7:0] <= wdata_i[7:0];
@@ -117,7 +118,7 @@ module lw_sha_interface_control_logic #(
 `endif `endif
             end else begin
               sts_reg[3] <= 1'b1;
-              slv_error_o <= 1'b1;
+//              slv_error_o <= 1'b1;
             end
           end
 `ifndef HMACAUXKEY
@@ -142,7 +143,7 @@ module lw_sha_interface_control_logic #(
 `endif `endif
             end else begin
               sts_reg[3] <= 1'b1;
-              slv_error_o <= 1'b1;
+//              slv_error_o <= 1'b1;
             end
           end
 `endif
@@ -156,8 +157,8 @@ module lw_sha_interface_control_logic #(
           ie_reg <= 32'h2;
         end
       end else begin
-        slv_error_o <= 1'b0;
-        wr_ack_o = 1'b0;
+//        slv_error_o <= 1'b0;
+//        wr_ack_o = 1'b0;
         if (start_o) ctl_reg[0] <= 1'b0;
         if (done_i) ctl_reg[1] <= 1'b0;
         if (abort_o) ctl_reg[2] <= 1'b0;

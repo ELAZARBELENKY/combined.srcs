@@ -63,20 +63,13 @@ always_ff @(posedge aclk) begin
       reject_data <= !ready;
     end
   end else if (con_wr) begin
-    case (awaddr)
-      CFG_ADDR: con_slv_error <= !core_ready;
-      CTL_ADDR: con_slv_error <= 0;
-      STS_ADDR: con_slv_error <= !(wdata[0] || wdata[3]);
-      IE_ADDR:  con_slv_error <= 0;
-      DIN_ADDR: begin
-        con_slv_error <= reject_data;
-        if (!reject_data && !ready) overflow <= 1'b1;
-      end
-      KEY_ADDR: begin
-        con_slv_error <= reject_data;
-        if (!reject_data && !key_ready) overflow <= 1'b1;
-      end
-    endcase
+    if (awaddr == DIN_ADDR) begin
+      con_slv_error <= reject_data;
+      if (!reject_data && !ready) overflow <= 1'b1;
+    end else if (awaddr == KEY_ADDR) begin
+      con_slv_error <= reject_data;
+      if (!reject_data && !key_ready) overflow <= 1'b1;
+    end
   end else begin
     overflow <= 1'b0;
     reject_data <= 1'b0;
@@ -188,7 +181,7 @@ logic [`WORD_SIZE-1:0] key;
 
 lw_hmac u_lw_hmac_core (
    .clk_i(aclk),
-   .aresetn_i(core_reset || aresetn),
+   .aresetn_i(core_reset && aresetn),
    .start_i(start),
    .abort_i(abort),
    .last_i(last),

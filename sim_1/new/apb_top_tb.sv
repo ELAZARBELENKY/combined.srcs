@@ -4,7 +4,7 @@ module apb_top_tb;
   parameter FIQSHA_BUS_DATA_WIDTH = `FIQSHA_BUS;
   parameter ADDR_WIDTH = 12;
   parameter HASH_WIDTH = `WORD_SIZE*8;
-localparam [3:0] sha_kind = 'h1;
+localparam [3:0] sha_kind = 'h5;
 `ifdef CORE_ARCH_S64
     localparam s64 = sha_kind[1]||sha_kind[2];
 `else `ifdef CORE_ARCH_S32
@@ -137,12 +137,12 @@ endtask
 `ifdef CORE_ARCH_S64
 
                   /* FOR S64 */
-//        localparam num = length >= `WORD_SIZE*14 ?
-//        16<<($clog2(length+`WORD_SIZE*2+1)-($clog2(`WORD_SIZE)+4)):16;
+        localparam num = length >= `WORD_SIZE*14 ?
+        16<<($clog2(length+`WORD_SIZE*2+1)-($clog2(`WORD_SIZE)+4)):16;
 
                   /* FOR S32 */  
-      localparam int num = length >= `WORD_SIZE/(s64?1:2)*14 ?
-        ($clog2(length+`WORD_SIZE/(s64?1:2)*2+1)-8)*16:16;
+//      localparam int num = length >= `WORD_SIZE/(s64?1:2)*14 ?
+//        ($clog2(length+`WORD_SIZE/(s64?1:2)*2+1)-8)*16:16;
 
 `else `ifdef CORE_ARCH_S32
       localparam int num = length >= `WORD_SIZE/(s64?1:2)*14 ?
@@ -205,7 +205,7 @@ endtask
         apb_write(DIN_ADDR, padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]); // Write data segment
         if (i == num-10) apb_write(CTL_ADDR, 32'h2);
         if (pslverr) i--;
-        if (pslverr) apb_write(STS_ADDR, 32'h8);
+//        if (pslverr) apb_write(STS_ADDR, 32'h8);
       end
 `endif `endif
 
@@ -275,4 +275,12 @@ if (val !== 32'hA5A5A5A5)
     sha256_test(1); // No input argument
   end
   always @(posedge pclk) random_i <= $random % 16;
+  initial begin
+//  #1625;
+//  apb_write(CTL_ADDR, 32'h4);
+//  #5500;
+//  presetn <= 0;
+//  #20;
+//  presetn <= 1;
+  end
 endmodule
