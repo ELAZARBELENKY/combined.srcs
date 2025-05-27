@@ -9,6 +9,7 @@ module lw_sha_ahb_top #(
 )(
   input  logic                     hclk,
   input  logic                     hresetn,
+  input  logic                     hsel,
   input  logic [31:0]              haddr,
   input  logic [2:0]               hburst,
 //  input  logic                     hmastlock,
@@ -50,6 +51,7 @@ module lw_sha_ahb_top #(
   ) u_ahb_slv (
     .hclk(hclk),
     .hresetn(hresetn),
+    .hsel(hsel),
     .haddr(haddr),
     .hburst(hburst),
 //    .hmastlock(hmastlock),
@@ -98,7 +100,7 @@ lw_sha_interface_control_logic #(
    .resetn_i(hresetn),
    .wr_i(con_wr),
    .wr_ack_o(con_wr_ack),
-   .rd_i(con_rd_ff),
+   .rd_i(con_rd),
    .rd_ack_i(con_rd_ack),
    .waddr_i(con_waddr),
    .raddr_i(con_raddr),

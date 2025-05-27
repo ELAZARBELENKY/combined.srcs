@@ -867,10 +867,10 @@ initial begin
     new_key_i <= 0;
   end
 end
-//initial begin
-//  #133935
-//  abort_i <= 1;
-//  #20
-//  abort_i <= 0;
-//end
+initial begin
+  #145175
+  abort_i <= 1;
+  #10
+  abort_i <= 0;
+end
 endmodule

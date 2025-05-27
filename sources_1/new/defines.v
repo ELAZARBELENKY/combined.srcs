@@ -9,7 +9,7 @@
  *
  */
 `ifndef VIASHIFT
-//  `define VIASHIFT
+  `define VIASHIFT
 `endif
 // The VIASHIFT is for implementing the key-saving procedure via SHIFT operation
 // instead of via pointers
@@ -17,7 +17,7 @@
   `define CORE_ARCH_S64
 `endif
 
-`define APB_W_32
+`define APB_W_64
 
 `ifdef APB_W_32
   `define FIQSHA_BUS 32

@@ -70,7 +70,7 @@ module lw_hmac ( input clk_i,
 
   lw_sha_main hashing ( .aresetn_i(aresetn_i),
                         .clk_i(clk_i),
-                        .start_i(hmac_start&&!abort_i||start_i),
+                        .start_i(hmac_start&&!(ns==not_active)||start_i),
                         .abort_i(abort_i),
                         .last_i(hmac ? hmac_last : last_i),
                         .data_valid_i(hmac ? hmac_data_valid : data_valid_i),
@@ -128,7 +128,9 @@ module lw_hmac ( input clk_i,
                   counter==0 ? mode?32'h2e0:32'h300:
                   counter[3] ? inner_hashed[counter[2:0]] : 32'b0;
 `endif `endif
-
+`ifdef VIASHIFT
+  assign key = key_reg[`WORD_SIZE-1:0];
+`endif
   always_comb begin
     case (ps)
       hmac_op: begin
@@ -173,9 +175,7 @@ module lw_hmac ( input clk_i,
       end
     endcase
   end
-  `ifdef VIASHIFT
-  assign key = key_reg[`WORD_SIZE-1:0];
-  `endif
+
   always_ff @(posedge clk_i or negedge aresetn_i) begin
     if (!aresetn_i) begin
       core_ready_o <= 1'b0;
@@ -198,7 +198,6 @@ module lw_hmac ( input clk_i,
       ps <= ns;
       if (ps == hmac_op && (hash_ready || fb && inner_hash)) begin
         if (inner_hash) begin
-          hmac_start <= 1'b1;
           if (saved_key && fb) begin
 `ifdef VIASHIFT
             key_reg <= key_reg >> `WORD_SIZE | key_reg << `WORD_SIZE*15;
@@ -223,6 +222,7 @@ module lw_hmac ( input clk_i,
             end
           end
           if (done_hash) begin
+            hmac_start <= 1;
             inner_hash <= 1'b0;
             inner_hashed <= sha_output;
             fb <= 1'b1;
