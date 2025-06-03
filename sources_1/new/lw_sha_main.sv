@@ -11,6 +11,7 @@
 `timescale 1ns / 1ps
 import lw_sha_pkg::*;
 `include "defines.v"
+(*dont_touch = "true"*)
 module lw_sha_main( input clk_i,
                     input aresetn_i,
                     input start_i,
@@ -18,7 +19,7 @@ module lw_sha_main( input clk_i,
                     input last_i,
                     input data_valid_i,
                     input [`WORD_SIZE-1:0] data_i,
-                    input [1:0] random_i,
+                    input [3:0] random_i,
 `ifdef CORE_ARCH_S64
                     input [2:0] opcode_i,
 `else `ifdef CORE_ARCH_S32
@@ -30,8 +31,8 @@ module lw_sha_main( input clk_i,
                     output logic done_o);
   logic [`WORD_SIZE-1:0] w[15:0] = '{default:'0};
   logic [`WORD_SIZE-1:0] word, expanded_word;
-  logic [`WORD_SIZE:0] state[7:0] = '{default:'0};
-  logic [`WORD_SIZE:0] new_state[7:0];
+  logic [`WORD_SIZE+1:0] state[7:0] = '{default:'0};
+  logic [`WORD_SIZE+1:0] new_state[7:0];
   logic [`WORD_SIZE-1:0] initial_state[7:0] = '{default:'0};
   logic [6:0] round_index = '{default:'0};
   logic finish = 1'b0;

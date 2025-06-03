@@ -11,17 +11,22 @@
 `timescale 1ns / 1ps
 import lw_sha_pkg::*;
 `include "defines.v"
-module lw_sha_round (    `ifdef CORE_ARCH_S64
-                           input mode,
-                         `endif
-                         input [`WORD_SIZE-1:0] word,
-                         input [`WORD_SIZE:0] state [7:0],
-                         input [6:0] round_index,
-                         input [1:0] random_i,
-                         output logic [`WORD_SIZE:0] new_state [7:0]);
+(*dont_touch = "true"*)
+module lw_sha_round (
+`ifdef CORE_ARCH_S64
+                     input mode,
+`endif
+                     input [`WORD_SIZE-1:0] word,
+                     input [`WORD_SIZE+1:0] state [7:0],
+                     input [6:0] round_index,
+                     input [3:0] random_i,
+                     output logic [`WORD_SIZE+1:0] new_state [7:0]);
 
   logic [`WORD_SIZE-1:0] delta_a, delta_e, temp1 ,temp2, choice, majority, sum0, sum1;
   logic [`WORD_SIZE-1:0] a, b, c, e, f, g;
+  logic [1:0] random_a, random_e;
+  assign random_a = random_i[1:0];
+  assign random_e = random_i[3:2];
 `ifdef CORE_ARCH_S64
   assign a = read_word(state[7],mode);
   assign b = read_word(state[6],mode);
@@ -46,8 +51,8 @@ module lw_sha_round (    `ifdef CORE_ARCH_S64
   assign delta_a = temp1 + temp2;
   assign delta_e = temp1 + read_word(state[4],mode);
 
-  assign new_state[7] = write_word(delta_a, random_i[1],mode); //assigning a
-  assign new_state[3] = write_word(delta_e, random_i[0],mode); //assigning e
+  assign new_state[7] = write_word(delta_a, random_a, mode); //assigning a
+  assign new_state[3] = write_word(delta_e, random_e, mode); //assigning e
   assign new_state[6:4] = state[7:5]; //assigning b,c,d (to be previous-state's a,b,c)
   assign new_state[2:0] = state[3:1]; //assigning f,g,h (to be previous-state's e,f,g)
 `else `ifdef CORE_ARCH_S32
@@ -68,8 +73,12 @@ module lw_sha_round (    `ifdef CORE_ARCH_S64
   assign delta_a = temp1 + temp2;
   assign delta_e = temp1 + read_word(state[4]);
 
-  assign new_state[7] = write_word(delta_a, random_i[1]); //assigning a
-  assign new_state[3] = write_word(delta_e, random_i[0]); //assigning e
+  assign new_state[7] = write_word(delta_a, random_a); //assigning a
+  assign new_state[3] = write_word(delta_e, random_e); //assigning e
+  
+//  assign new_state[7] = {random_a, right_rotate(delta_a, random_a)}; //assigning a
+//  assign new_state[3] = {random_e, right_rotate(delta_a, random_a)}; //assigning e
+  
   assign new_state[6:4] = state[7:5]; //assigning b,c,d (to be previous-state's a,b,c)
   assign new_state[2:0] = state[3:1]; //assigning f,g,h (to be previous-state's e,f,g)
 `endif `endif
