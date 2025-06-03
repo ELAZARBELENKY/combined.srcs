@@ -29,86 +29,122 @@ module ahb_slave_adapter #(
     input  logic                   con_slverr
 );
 
-  typedef enum logic [1:0] {IDLE, ADDR, DATA} state_t;
-  state_t state;
+  // Current transfer registers (data phase)
+  logic [ADDR_WIDTH-1:0] current_addr;
+  logic [2:0]            current_size;
+  logic [2:0]            current_burst;
+  logic                  current_write;
+  logic [7:0]            current_beats_remaining;
+  logic                  current_active;
 
-  logic [ADDR_WIDTH-1:0] addr_reg;
-  logic [2:0]            size_reg, burst_reg;
-  logic                  write_reg;
-  logic [7:0]            beats_rem; // Remaining beats
+//  // Pending transfer registers (address phase)
+//  logic [ADDR_WIDTH-1:0] pending_addr;
+//  logic [2:0]            pending_size;
+//  logic [2:0]            pending_burst;
+//  logic                  pending_write;
+//  logic                  pending_valid;
+
   logic [ADDR_WIDTH-1:0] next_addr;
-  logic                  addr_phase_valid;
-  logic                  data_phase_active;
 
-  wire transfer_req = htrans[1] && hsel;
-
+  // Burst length calculation
   logic [7:0] burst_len;
   always_comb begin
     unique case (hburst)
-      3'b000: burst_len = 8'd1;
-      3'b001: burst_len = 8'd255;
-      3'b010, 3'b011: burst_len = 8'd4;
-      3'b100, 3'b101: burst_len = 8'd8;
-      3'b110, 3'b111: burst_len = 8'd16;
-      default: burst_len = 8'd1;
+      3'b000: burst_len = 8'd1;          // SINGLE
+      3'b001: burst_len = 8'd255;        // INCR
+      3'b010, 3'b011: burst_len = 8'd4;  // WRAP4, INCR4
+      3'b100, 3'b101: burst_len = 8'd8;  // WRAP8, INCR8
+      3'b110, 3'b111: burst_len = 8'd16; // WRAP16, INCR16
+      default: burst_len = 8'd1;         // Default to SINGLE
     endcase
   end
 
-always_comb begin
-  logic [ADDR_WIDTH-1:0] increment;
-  logic [ADDR_WIDTH-1:0] wrap_mask;
-  logic [ADDR_WIDTH-1:0] boundary_mask;
-  increment = 1 << size_reg;
-  case (burst_reg)
-    3'b000: next_addr = addr_reg; // SINGLE 
-    3'b001: next_addr = addr_reg + increment; // INCR
-    3'b010: begin // WRAP4
-      wrap_mask = (increment << 2) - 1;
-      boundary_mask = ~wrap_mask;
-      next_addr = (addr_reg & boundary_mask) | ((addr_reg + increment) & wrap_mask);
-    end
-    3'b011: next_addr = addr_reg + increment; // INCR4
-    3'b100: begin // WRAP8
-      wrap_mask = (increment << 3) - 1;
-      boundary_mask = ~wrap_mask;
-      next_addr = (addr_reg & boundary_mask) | ((addr_reg + increment) & wrap_mask);
-    end
-    3'b101: next_addr = addr_reg + increment; // INCR8
-    3'b110: begin // WRAP16
-      wrap_mask = (increment << 4) - 1;
-      boundary_mask = ~wrap_mask;
-      next_addr = (addr_reg & boundary_mask) | ((addr_reg + increment) & wrap_mask);
-    end
-    3'b111: next_addr = addr_reg + increment; // INCR16
-    default: next_addr = addr_reg;
-  endcase
-end
-
+  // Next address calculation for bursts
   always_comb begin
-    state = IDLE;
-    if (!hresetn) state = IDLE;
-    else if (transfer_req && hready && !addr_phase_valid && !data_phase_active) state = ADDR;
-    else if (addr_phase_valid) state = DATA;
+    logic [ADDR_WIDTH-1:0] increment;
+    logic [ADDR_WIDTH-1:0] wrap_mask;
+    logic [ADDR_WIDTH-1:0] boundary_mask;
+    increment = 1 << current_size;
+    case (current_burst)
+      3'b000: next_addr = current_addr; // SINGLE
+      3'b001: next_addr = current_addr + increment; // INCR
+      3'b010: begin // WRAP4
+        wrap_mask = (increment << 2) - 1;
+        boundary_mask = ~wrap_mask;
+        next_addr = (current_addr & boundary_mask) | ((current_addr + increment) & wrap_mask);
+      end
+      3'b011: next_addr = current_addr + increment; // INCR4
+      3'b100: begin // WRAP8
+        wrap_mask = (increment << 3) - 1;
+        boundary_mask = ~wrap_mask;
+        next_addr = (current_addr & boundary_mask) | ((current_addr + increment) & wrap_mask);
+      end
+      3'b101: next_addr = current_addr + increment; // INCR8
+      3'b110: begin // WRAP16
+        wrap_mask = (increment << 4) - 1;
+        boundary_mask = ~wrap_mask;
+        next_addr = (current_addr & boundary_mask) | ((current_addr + increment) & wrap_mask);
+      end
+      3'b111: next_addr = current_addr + increment; // INCR16
+      default: next_addr = current_addr;
+    endcase
   end
 
-  // Conduit Interface
-  assign con_waddr   = (state == ADDR) ? haddr : addr_reg;
-  assign con_raddr   = (state == ADDR) ? haddr : addr_reg;
-  assign con_wdata   = hwdata;
-  assign con_rd_ack  = con_rd;
+  logic new_transfer;
+
+  // Process data phase with current transfer
+  always_ff @(posedge hclk or negedge hresetn) begin
+    if (!hresetn) begin
+      current_active          <= 1'b0;
+      current_beats_remaining <= 8'd0;
+      current_addr            <= '0;
+      current_size            <= '0;
+      current_burst           <= '0;
+      current_write           <= 1'b0;
+    end else begin
+      if (current_beats_remaining > 1) begin
+        current_addr <= next_addr;
+        current_beats_remaining <= current_beats_remaining - 1;
+      end else if (new_transfer) begin
+        // Start transfer when idle
+        current_addr            <= haddr;
+        current_size            <= hsize;
+        current_burst           <= hburst;
+        current_write           <= hwrite;
+        current_active          <= 1'b1;
+        current_beats_remaining <= burst_len;
+      end else         
+        current_active <= 1'b0;
+    end
+  end
+  
+  assign new_transfer = htrans[1] && hsel && hreadyout;
+
+  // Conduit signals - immediate response to AHB bus OR ongoing burst
+  assign con_wr = (current_active && current_write);
+  assign con_rd = (current_active && !current_write);
+  
+  // Address - immediate from AHB bus for new transfers, from current for bursts
+  assign con_waddr = current_addr;
+  assign con_raddr = current_addr;
+  assign con_wdata = hwdata;
+  assign con_rd_ack = con_rd;
+
+  // HRDATA: Direct from conduit (assuming valid when con_rd_ack)
+  assign hrdata = con_rdata;
 
   // Error Response FSM
-  typedef enum logic [1:0] {RESP_OKAY, RESP_WAIT1, RESP_ERROR} resp_state_t;
-  resp_state_t resp_state = RESP_OKAY;
+  typedef enum logic [1:0] {RESP_OKAY, RESP_WAIT, RESP_ERROR} resp_state_t;
+  resp_state_t resp_state;
 
   always_ff @(posedge hclk or negedge hresetn) begin
-    if (!hresetn)
+    if (!hresetn) begin
       resp_state <= RESP_OKAY;
-    else begin
+    end else begin
       case (resp_state)
-        RESP_OKAY:  if (con_slverr)   resp_state <= RESP_WAIT1;
-        RESP_WAIT1:                   resp_state <= RESP_ERROR;
-        RESP_ERROR:                   resp_state <= RESP_OKAY;
+        RESP_OKAY:  if (con_slverr) resp_state <= RESP_ERROR; // Immediate error response
+        RESP_WAIT:  resp_state <= RESP_ERROR;
+        RESP_ERROR: resp_state <= RESP_OKAY;
       endcase
     end
   end
@@ -118,12 +154,12 @@ end
     hresp     = 1'b0;
     case (resp_state)
       RESP_OKAY: begin
-        hreadyout = 1'b1;
-        hresp     = 1'b0;
+        hreadyout = !con_slverr;
+        hresp     = con_slverr;
       end
-      RESP_WAIT1: begin
-        hreadyout = 1'b0; // stall cycle
-        hresp     = 1'b1; // signal error
+      RESP_WAIT: begin
+        hreadyout = 0;
+        hresp     = 1;
       end
       RESP_ERROR: begin
         hreadyout = 1'b1;
@@ -131,56 +167,5 @@ end
       end
     endcase
   end
-
-  // === Data/Write/Read Enable ===
-  always_comb begin
-    con_wr = (state == DATA) && write_reg && (resp_state == RESP_OKAY);
-    con_rd = (state != IDLE) && !write_reg && (resp_state == RESP_OKAY);
-  end
-  
- logic [DATA_WIDTH-1:0] hrdata_reg;
-
-  always_ff @(posedge hclk or negedge hresetn) begin
-    if (!hresetn)
-      hrdata_reg <= '0;
-    else if (!write_reg && con_rd_ack && (state == DATA))
-      hrdata_reg <= con_rdata;
-  end
-  
-  assign hrdata = (!write_reg && con_rd_ack && (state == DATA)) ? con_rdata : hrdata_reg;
-
-always_ff @(posedge hclk or negedge hresetn) begin
-  if (!hresetn) begin
-    addr_reg          <= '0;
-    size_reg          <= 3'b010;
-    burst_reg         <= 3'b000;
-    write_reg         <= 1'b0;
-    beats_rem         <= 8'd0;
-    addr_phase_valid  <= 1'b0;
-    data_phase_active <= 1'b0;
-  end else begin
-    if (state == ADDR && hsel) begin
-      addr_reg         <= haddr;
-      size_reg         <= hsize;
-      burst_reg        <= hburst;
-      write_reg        <= hwrite;
-      beats_rem        <= burst_len;
-      addr_phase_valid <= 1'b1;
-      data_phase_active <= 1'b1;
-    end else if (state == DATA && ((write_reg && con_wr_ack) || (!write_reg && con_rd_ack))) begin
-      if (beats_rem != 8'd1) begin
-        beats_rem        <= beats_rem - 1;
-        addr_reg         <= next_addr;
-        addr_phase_valid <= 1'b1;
-      end else begin
-        addr_phase_valid  <= 1'b0;
-        data_phase_active <= 1'b0;
-      end
-    end else if (state == IDLE) begin
-      addr_phase_valid  <= 1'b0;
-      data_phase_active <= 1'b0;
-    end
-  end
-end
 
 endmodule

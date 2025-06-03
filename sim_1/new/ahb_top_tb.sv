@@ -17,7 +17,7 @@ module ahb_top_tb();
   localparam DIN_ADDR  = 12'h140;
   localparam KEY_ADDR  = 12'h150;
 
-  localparam [3:0] sha_kind = 'h5;
+  localparam [3:0] sha_kind = 'h1;
   `ifdef CORE_ARCH_S64
     localparam s64 = sha_kind[1]||sha_kind[2];
   `else `ifdef CORE_ARCH_S32
@@ -52,6 +52,7 @@ module ahb_top_tb();
   reg [1023:0] aux_key_i = '0;
   reg [FIQSHA_BUS_DATA_WIDTH - 1:0] avl[HASH_WIDTH / FIQSHA_BUS_DATA_WIDTH - 1:0];
   reg [FIQSHA_BUS_DATA_WIDTH - 1:0] hash_result[HASH_WIDTH / FIQSHA_BUS_DATA_WIDTH - 1:0];
+
   // Clock generation
   always
     #5 hclk = ~hclk;
@@ -78,6 +79,7 @@ task automatic ahb_single_write(
 
   // Data Phase -------------------------------------------------
   hwdata <= data;       // Drive write data
+  htrans <= 2'b00;      // NONSEQ transfer (valid transfer)
 
   // Keep data stable until transfer completes
   do begin
@@ -92,6 +94,74 @@ task automatic ahb_single_write(
   // Optional: Wait 1 cycle for clean bus state (protocol-compliant)
   @(posedge hclk);
 endtask
+
+
+
+task automatic ahb_pipelined_write(
+  input logic [DATA_WIDTH-1:0] data_array[], // Data to write
+  input int num                              // Number of words
+);
+  int words_index = 0;
+  logic do_control_write;
+  logic is_control_write;
+
+  wait (hreadyout && hresp == 1'b0);
+
+  // Initialize bus
+  hsel   <= 1'b0;
+  hwrite <= 1'b0;
+  htrans <= 2'b00;
+  hburst <= 3'b000;
+  haddr  <= '0;
+  hwdata <= '0;
+
+  words_index  = -1;
+  do_control_write = 1'b0;
+  is_control_write = 1'b0;
+
+  while (words_index < num-1) begin
+//    @(posedge hclk);
+    if (hresp && hreadyout == 1'b0) begin
+      hsel   <= 1'b0;
+      hwrite <= 1'b0;
+      htrans <= 2'b00;
+      words_index = words_index - 2;
+      @(posedge hclk);
+      continue;
+    end else if (do_control_write) begin
+      hsel   <= 1'b1;
+      hwrite <= 1'b1;
+      htrans <= 2'b10;
+      haddr <= CTL_ADDR;
+      is_control_write = 1'b1;
+    end else begin
+      hsel   <= 1'b1;
+      hwrite <= 1'b1;
+      htrans <= 2'b10;
+      haddr <= DIN_ADDR;
+      is_control_write = 1'b0;
+    end
+    if (words_index == num - 10) begin
+      do_control_write = 1'b1;
+    end
+    if (is_control_write) begin
+      do_control_write = 1'b0;
+      @(posedge hclk);
+      hwdata <= 32'h2;
+    end else begin
+      words_index++;
+      @(posedge hclk);
+      hwdata <= data_array[words_index];
+    end
+  end
+  
+  @(posedge hclk iff hreadyout);
+  hsel   <= 1'b0;
+  hwrite <= 1'b0;
+  htrans <= 2'b00;
+  hwdata <= '0;
+endtask
+
 
 task ahb_read(
   input logic [ADDR_SP_SZ-1:0] addr,
@@ -156,8 +226,9 @@ endtask
           ($clog2(length+`WORD_SIZE/(s64?1:2)*2+1)-8)*16:16;
 `endif `endif
       reg [num*`WORD_SIZE/(s64?1:2)-1:0] padded_data = 0;
-      
+
       logic [length-1:0] hex_value;
+      logic [`WORD_SIZE-1:0] padded_data_array[num];
       // Converting each character to its hexadecimal value
       for (int i = 0; i < length; i++) begin
           hex_value[(length-1 - i * 8) -: 8] = input_str[i];
@@ -211,12 +282,19 @@ endtask
 //          if (hresp)  ahb_single_write(STS_ADDR, 32'h8);
       end
 `else `ifdef CORE_ARCH_S32
+
       for (int i = 0; i < num; i++) begin
-        ahb_single_write(DIN_ADDR, {padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE]}); // Write data segment
-        if (i == num-10) ahb_single_write(CTL_ADDR, {32'h2});
-        if (hresp) i--;
-//        if (hresp) ahb_single_write(STS_ADDR, 32'h8);
+        padded_data_array[i] = padded_data[(num*`WORD_SIZE-1 - (i * `WORD_SIZE)) -: `WORD_SIZE];
       end
+      
+//      for (int i = 0; i < num; i++) begin
+//        ahb_single_write(DIN_ADDR, padded_data_array[i]); // Write data segment
+//        if (i == num-10) ahb_single_write(CTL_ADDR, {32'h2});
+//        if (hresp) i--;
+//      end
+
+      ahb_pipelined_write(padded_data_array, num);
+
 `endif `endif
 
       // 5. Wait for result
@@ -252,7 +330,7 @@ logic [31:0] val[];
   
    initial begin
     hclk = 0;
-    hresetn = 1;
+    hresetn = 0;
     hsel = 0;
 //    henable = 0;
     hwrite = 0;
@@ -270,6 +348,7 @@ logic [31:0] val[];
 //ahb_single_write(CFG_ADDR, {32'h0});
 //ahb_single_write(IE_ADDR, {32'hA5A5A5A5});
 //ahb_read(IE_ADDR, val,1);
+
 `ifdef CORE_ARCH_S64
     aux_key_i = 'h09a09c09c989a09023b432e28000323f87c79a9008f0ff323225656e3326234fca889df080bc09a3bc54d2af4b23c26e32bb2af423e2a24c4f5233c599c7689e
     `ifndef HMACAUXKEY <<(s64?512:0);`else >> ((`WORD_SIZE*8-`KEY_SIZE > 0) ? (`WORD_SIZE*8-`KEY_SIZE):0);`endif

@@ -44,7 +44,25 @@ module lw_sha_ahb_top #(
   logic                           con_slv_error;
   logic [11:0]                    con_waddr, con_raddr;
   logic [FIQSHA_BUS_DATA_WIDTH-1:0] con_wdata, con_rdata;
+  
+logic ready, err;
+logic [3:0] count = '0;
 
+always_ff @(posedge hclk) begin
+  if (!hresetn) count <= '0;
+  else if (con_wr && (ready && con_waddr == DIN_ADDR || key_ready && con_waddr == KEY_ADDR)) begin
+    count <= count + 1;
+  end else begin
+    count <= '0;
+  end
+end
+
+always_ff @(posedge hclk) begin
+  if (!hresetn) err <= 0;
+  else if (count == 15) err <= 1;
+  else err <= 0;
+end
+    
   ahb_slave_adapter #(
     .DATA_WIDTH(FIQSHA_BUS_DATA_WIDTH),
     .ADDR_WIDTH(12)
@@ -73,16 +91,17 @@ module lw_sha_ahb_top #(
     .con_raddr(con_raddr),
     .con_wdata(con_wdata),
     .con_rdata(con_rdata),
-    .con_slverr(con_slv_error)
+    .con_slverr(con_slv_error || err)
   );
 
-logic start, abort, last, valid, ready, fault_inj_det, core_ready, done;
+logic start, abort, last, valid, fault_inj_det, core_ready, done;
 logic [3:0] opcode;
 logic [DATA_WIDTH-1:0] data;
 logic [DATA_WIDTH-1:0] hash[7:0];
 logic core_reset;
 logic new_key;
 logic con_rd_ff;
+
 
 always_ff @(posedge hclk)
   if (!hresetn)

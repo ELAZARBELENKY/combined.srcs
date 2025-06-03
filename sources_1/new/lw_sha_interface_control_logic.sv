@@ -255,15 +255,6 @@ module lw_sha_interface_control_logic #(
     logic rdydie;
     logic avlie;
   } ie_t;
-
-  typedef struct {
-    logic [255:0] hashhigh;
-    logic [255:0] hash;
-  } hash_t;
-
-  typedef struct {
-    logic [ARCH_SZ*8-1:0] statesh [3];
-  } state_t;
   
   id_t id;
   cfg_t cfg;
